@@ -1,0 +1,12 @@
+html, body{
+    height:100%;
+    font-family: "Open Sans";
+}
+
+h1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    height: 76.4%;
+}
