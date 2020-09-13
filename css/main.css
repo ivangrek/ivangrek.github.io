@@ -10,3 +10,9 @@ h1 {
     margin: 0;
     height: 76.4%;
 }
+
+a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

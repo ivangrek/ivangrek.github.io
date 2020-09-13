@@ -1,0 +1,49 @@
+:root {
+  --line-width: 3px;
+  --back-color: #eee;
+  --front-color: #333;
+}
+        
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    align-items: center;
+}
+
+.glass {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: calc(10 * 11 * var(--line-width) + 3 * var(--line-width));
+    max-width: calc(10 * 11 * var(--line-width) + 3 * var(--line-width));
+    margin: 0 auto;
+    padding: calc(var(--line-width)) 0 0 calc(var(--line-width));
+    border: calc(var(--line-width)) solid var(--front-color);
+}
+
+.cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(10 * var(--line-width));
+    height: calc(10 * var(--line-width));
+    background-color: var(--back-color);
+    margin: 0 calc(var(--line-width)) calc(var(--line-width)) 0;
+    box-sizing: border-box;
+}
+
+.cell::after {
+    content: '';
+    width: calc(6 * var(--line-width));
+    height: calc(6 * var(--line-width));
+    background: transparent;
+    border: calc(var(--line-width)) solid white;
+}
+
+.cell.active {
+    background-color: var(--front-color);    
+}
