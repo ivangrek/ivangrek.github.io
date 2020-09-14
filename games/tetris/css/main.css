@@ -13,16 +13,45 @@ html, body {
 body {
     display: flex;
     align-items: center;
+    background-color: var(--back-color); 
+}
+
+.display {
+    display: flex;
+    margin: 0 auto;
 }
 
 .glass {
     display: flex;
     flex-wrap: wrap;
-    min-width: calc(10 * 11 * var(--line-width) + 3 * var(--line-width));
-    max-width: calc(10 * 11 * var(--line-width) + 3 * var(--line-width));
+    min-width: calc(10 * 11 * var(--line-width) + var(--line-width));
+    max-width: calc(10 * 11 * var(--line-width) + var(--line-width));
     margin: 0 auto;
+    
+    /* border: calc(var(--line-width)) solid var(--front-color); */
+    background-color: white;
     padding: calc(var(--line-width)) 0 0 calc(var(--line-width));
-    border: calc(var(--line-width)) solid var(--front-color);
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    margin-left: calc(11 * var(--line-width));
+}
+
+.next {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: calc(4 * 11 * var(--line-width) + var(--line-width));
+    max-width: calc(4 * 11 * var(--line-width) + var(--line-width));
+    min-height: calc(4 * 11 * var(--line-width) + var(--line-width));
+    max-height: calc(4 * 11 * var(--line-width) + var(--line-width));
+    background-color: white;
+    padding: calc(var(--line-width)) 0 0 calc(var(--line-width));
+}
+
+.score {
+    margin-top: calc(11 * var(--line-width));
 }
 
 .cell {

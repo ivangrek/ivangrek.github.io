@@ -75,14 +75,59 @@ var symbols = {
         [0 , 0 , 0],
         [0 , 0 , 0],
         [0 , 0 , 0]
+    ],
+    "I": [
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0]
+    ],
+    "L": [
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0]
+    ],
+    "J": [
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [1, 1, 0, 0],
+        [0, 0, 0, 0]
+    ],
+    "S": [
+        [0, 1, 1, 0],
+        [1, 1, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ],
+    "Z": [
+        [1, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ],
+    "O": [
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ],
+    "T": [
+        [0, 1, 0, 0],
+        [1, 1, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
     ]
 };
 
-var time = {
-    hours: 10,
-    minutes: 10,
-    dot: true
-};
+var pieceNames = ["I", "L", "J", "S", "Z", "O", "T"];
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    
+    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+  }
 
 document.addEventListener("DOMContentLoaded", function(){
     var cells = document.getElementsByClassName("cell");
@@ -94,11 +139,13 @@ document.addEventListener("DOMContentLoaded", function(){
     }
     
     function drawSymbol(symbol, startPoint) {
-        for (let y = 0; y < 5; ++y) {
-            for (let x = 0; x < 3; ++x) {
+        const symbolMeta = symbols[symbol];
+
+        for (let y = 0; y < symbolMeta.length; ++y) {
+            for (let x = 0; x < symbolMeta[y].length; ++x) {
                 const cell = cells[x + startPoint.x + (y + startPoint.y) * 10];
                 
-                if(symbol[y][x] === 1) {
+                if(symbolMeta[y][x] === 1) {
                     cell.classList.add("active");
                 }
             }  
@@ -114,70 +161,94 @@ document.addEventListener("DOMContentLoaded", function(){
         
         const hoursDigits = time.hours.split("");
         
-        const firstSymbol = symbols[hoursDigits[0]];
         const firstStart = { x: 1, y: 2 };
         
-        drawSymbol(firstSymbol, firstStart);
+        drawSymbol(hoursDigits[0], firstStart);
 
-        const secondSymbol = symbols[hoursDigits[1]];
         const secondStart = { x: 6, y: 2 };
         
-        drawSymbol(secondSymbol, secondStart);
+        drawSymbol(hoursDigits[1], secondStart);
 
         const minutesDigits = time.minutes.split("");
         
-        const thirdSymbol = symbols[minutesDigits[0]];
         const thirdStart = { x: 1, y: 13 };
         
-        drawSymbol(thirdSymbol, thirdStart);
+        drawSymbol(minutesDigits[0], thirdStart);
         
-        const fourthSymbol = symbols[minutesDigits[1]];
         const fourthStart = { x: 6, y: 13 };
         
-        drawSymbol(fourthSymbol, fourthStart);
+        drawSymbol(minutesDigits[1], fourthStart);
     }
     
     function drawDots() {
-        const dotSymbol = symbols["."];
         const firstStart = { x: 2, y: 9 };
         const secondtStart = { x: 6, y: 9 };
         
-        drawSymbol(dotSymbol, firstStart);
-        drawSymbol(dotSymbol, secondtStart);
+        drawSymbol(".", firstStart);
+        drawSymbol(".", secondtStart);
     }
-    
-    let dots = true;
-
-    function draw() {
-        clear();
-        drawTime();
-        
-        if(dots) {
-            drawDots();
-        }
-        
-        dots = !dots;
-    }
-    
-    function drawСountdown(counter) {
+   
+    function drawСountdown() {
         const firstStart = { x: 1, y: 5 };
         const secondtStart = { x: 6, y: 5 };
-        const symbol = counter.toString();
-            
-        drawSymbol(symbols["0"], firstStart);
-        drawSymbol(symbols[symbol], secondtStart);
+        let counter = 9;
+
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                clear();
+                drawSymbol("0", firstStart);
+                drawSymbol(counter.toString(), secondtStart);
+                
+                if(counter === 0) {
+                    clearInterval(process);
+                    resolve();
+                }
+                
+                --counter;
+            }, 500);
+        });
     }
-    
-    let counter = 9;
-    let counterInterval = setInterval(function() {
-        clear();
-        drawСountdown(counter);
-        
-        if(counter === 0) {
-            clearInterval(counterInterval);
-            setInterval(draw, 500);
-        }
-        
-        --counter;
-    }, 500);
+
+    function drawPieces() {
+        const startPoint = { x: 3, y: 5 };
+        //const random = Math.min(counter, 6);//getRandomInt(0, 7);
+        let counter = 6;
+
+        return new Promise((resolve, reject) => {
+            let dots = true;
+
+            const process = setInterval(function() {
+                clear();
+                drawSymbol(pieceNames[counter], startPoint);
+                
+                if(counter === 0) {
+                    clearInterval(process);
+                    resolve();
+                }
+                
+                --counter;
+            }, 500);
+        });
+    }
+
+    function drawClock() {
+        let dots = true;
+
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                clear();
+                drawTime();
+                
+                if(dots) {
+                    drawDots();
+                }
+                
+                dots = !dots;
+            }, 500);
+        });
+    }
+
+    drawСountdown()
+        .then(drawPieces)
+        .then(drawClock);
 });
