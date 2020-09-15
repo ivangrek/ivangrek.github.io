@@ -107,9 +107,9 @@ var symbols = {
         [0, 0, 0, 0]
     ],
     "O": [
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
         [0, 0, 0, 0],
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
         [0, 0, 0, 0]
     ],
     "T": [
@@ -130,20 +130,35 @@ function getRandomInt(min, max) {
   }
 
 document.addEventListener("DOMContentLoaded", function(){
-    var cells = document.getElementsByClassName("cell");
+    var glassCells = document.querySelectorAll(".glass .cell");
+    var nextCells = document.querySelectorAll(".next .cell");
 
     function clear() {
-        for (const cell of cells) { 
+        for (const cell of glassCells) { 
+            cell.classList.remove("active");
+        } 
+    }
+
+    function clearNext() {
+        for (const cell of nextCells) { 
             cell.classList.remove("active");
         } 
     }
     
-    function drawSymbol(symbol, startPoint) {
+    function drawSymbol(symbol, startPoint, display) {
+        let cells = glassCells;
+        let size = 10;
+
+        if(display === 1) {
+            cells = nextCells;
+            size = 4;
+        }
+        
         const symbolMeta = symbols[symbol];
 
         for (let y = 0; y < symbolMeta.length; ++y) {
             for (let x = 0; x < symbolMeta[y].length; ++x) {
-                const cell = cells[x + startPoint.x + (y + startPoint.y) * 10];
+                const cell = cells[x + startPoint.x + (y + startPoint.y) * size];
                 
                 if(symbolMeta[y][x] === 1) {
                     cell.classList.add("active");
@@ -163,29 +178,29 @@ document.addEventListener("DOMContentLoaded", function(){
         
         const firstStart = { x: 1, y: 2 };
         
-        drawSymbol(hoursDigits[0], firstStart);
+        drawSymbol(hoursDigits[0], firstStart, 0);
 
         const secondStart = { x: 6, y: 2 };
         
-        drawSymbol(hoursDigits[1], secondStart);
+        drawSymbol(hoursDigits[1], secondStart, 0);
 
         const minutesDigits = time.minutes.split("");
         
         const thirdStart = { x: 1, y: 13 };
         
-        drawSymbol(minutesDigits[0], thirdStart);
+        drawSymbol(minutesDigits[0], thirdStart, 0);
         
         const fourthStart = { x: 6, y: 13 };
         
-        drawSymbol(minutesDigits[1], fourthStart);
+        drawSymbol(minutesDigits[1], fourthStart, 0);
     }
     
     function drawDots() {
         const firstStart = { x: 2, y: 9 };
         const secondtStart = { x: 6, y: 9 };
         
-        drawSymbol(".", firstStart);
-        drawSymbol(".", secondtStart);
+        drawSymbol(".", firstStart, 0);
+        drawSymbol(".", secondtStart, 0);
     }
    
     function drawСountdown() {
@@ -196,8 +211,8 @@ document.addEventListener("DOMContentLoaded", function(){
         return new Promise((resolve, reject) => {
             const process = setInterval(function() {
                 clear();
-                drawSymbol("0", firstStart);
-                drawSymbol(counter.toString(), secondtStart);
+                drawSymbol("0", firstStart, 0);
+                drawSymbol(counter.toString(), secondtStart, 0);
                 
                 if(counter === 0) {
                     clearInterval(process);
@@ -205,13 +220,12 @@ document.addEventListener("DOMContentLoaded", function(){
                 }
                 
                 --counter;
-            }, 500);
+            }, 300);
         });
     }
 
     function drawPieces() {
         const startPoint = { x: 3, y: 5 };
-        //const random = Math.min(counter, 6);//getRandomInt(0, 7);
         let counter = 6;
 
         return new Promise((resolve, reject) => {
@@ -219,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
             const process = setInterval(function() {
                 clear();
-                drawSymbol(pieceNames[counter], startPoint);
+                drawSymbol(pieceNames[counter], startPoint, 0);
                 
                 if(counter === 0) {
                     clearInterval(process);
@@ -227,7 +241,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 }
                 
                 --counter;
-            }, 500);
+            }, 300);
         });
     }
 
@@ -248,7 +262,20 @@ document.addEventListener("DOMContentLoaded", function(){
         });
     }
 
+    function drawNext() {
+        const process = setInterval(function() {
+            const startPoint = { x: 0, y: 0 };
+            const random = getRandomInt(0, 7);
+            
+            clearNext();
+            drawSymbol(pieceNames[random], startPoint, 1);
+        }, 1300);
+    }
+
     drawСountdown()
         .then(drawPieces)
-        .then(drawClock);
+        .then(() => {
+            drawClock();
+            drawNext();
+        });
 });
