@@ -54,6 +54,14 @@ body {
     margin-top: calc(11 * var(--line-width));
 }
 
+.state {
+    margin-top: calc(11 * var(--line-width));
+}
+
+.keys {
+    margin-top: calc(11 * var(--line-width));
+}
+
 .cell {
     display: flex;
     align-items: center;
