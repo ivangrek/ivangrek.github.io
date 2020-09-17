@@ -486,17 +486,21 @@ class Game implements IApplicationObject {
         this.current.update(delta);
         this.next.update(delta);
 
-        if(Application.getButton(Button.Left)) {
+        if(Application.getButtonDown(Button.Left)) {
             let collision = false;
 
             const symbolMeta = symbols[this.current.type];
 
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1 && this.current.position.x - 1 + x < 0) {
-                        collision = true;
-
-                        if(collision) {
+                    if(symbolMeta[y][x] === 1) {
+                        if(this.current.position.x - 1 + x < 0) {
+                            collision = true;
+                            break;
+                        }
+                        
+                        if(this.glass[this.current.position.y + y][this.current.position.x - 1 + x] === 1) {
+                            collision = true;
                             break;
                         }
                     }
@@ -512,17 +516,21 @@ class Game implements IApplicationObject {
             }
         }
 
-        if(Application.getButton(Button.Right)) {
+        if(Application.getButtonDown(Button.Right)) {
             let collision = false;
 
             const symbolMeta = symbols[this.current.type];
 
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1 && this.current.position.x + 1 + x > Display.width - 1) {
-                        collision = true;
-
-                        if(collision) {
+                    if(symbolMeta[y][x] === 1) {
+                        if(this.current.position.x + 1 + x > Display.width - 1) {
+                            collision = true;
+                            break;
+                        }
+                        
+                        if(this.glass[this.current.position.y + y][this.current.position.x + 1 + x] === 1) {
+                            collision = true;
                             break;
                         }
                     }
@@ -545,10 +553,14 @@ class Game implements IApplicationObject {
 
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1 && this.current.position.y + 1 + y > Display.height - 1) {
-                        collision = true;
-
-                        if(collision) {
+                    if(symbolMeta[y][x] === 1) {
+                        if(this.current.position.y + 1 + y > Display.height - 1) {
+                            collision = true;
+                            break;
+                        }
+                        
+                        if(this.glass[this.current.position.y + 1 + y][this.current.position.x + x] === 1) {
+                            collision = true;
                             break;
                         }
                     }
@@ -579,10 +591,14 @@ class Game implements IApplicationObject {
 
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1 && this.current.position.y + 1 + y > Display.height - 1) {
-                        collision = true;
-
-                        if(collision) {
+                    if(symbolMeta[y][x] === 1) {
+                        if(this.current.position.y + 1 + y > Display.height - 1) {
+                            collision = true;
+                            break;
+                        }
+                        
+                        if(this.glass[this.current.position.y + 1 + y][this.current.position.x + x] === 1) {
+                            collision = true;
                             break;
                         }
                     }
