@@ -1,3 +1,123 @@
+enum Button {
+    Up,
+    Down,
+    Left,
+    Right
+}
+
+interface IApplicationObject {
+    update: (delta: number) => void;
+    draw: () => void;
+}
+
+class Application {
+    private static holdedButtons: Map<Button, boolean> = new Map<Button, boolean>([
+        [Button.Up, false],
+        [Button.Down, false],
+        [Button.Left, false],
+        [Button.Right, false]
+    ]);
+
+    private static firedButtons: Map<Button, boolean> = new Map<Button, boolean>([
+        [Button.Up, false],
+        [Button.Down, false],
+        [Button.Left, false],
+        [Button.Right, false]
+    ]);
+    
+    public static run(root: IApplicationObject) {
+        window.addEventListener("keydown", (e: KeyboardEvent) => this.onKeyDown(e), false);
+        window.addEventListener("keyup", (e: KeyboardEvent) => this.onKeyUp(e), false);
+
+        let now: number = performance.now();
+
+        const frame = (time: number) => {
+            requestAnimationFrame(frame);
+
+            const delta = Math.min(1000, time - now);
+
+            root.update(delta);
+            root.draw();
+
+            now = time;
+
+            this.firedButtons = new Map<Button, boolean>([
+                [Button.Up, false],
+                [Button.Down, false],
+                [Button.Left, false],
+                [Button.Right, false]
+            ]);
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    public static getButton(button: Button): boolean {
+        return this.holdedButtons.get(button);
+    }
+
+    public static getButtonDown(button: Button): boolean {
+        return this.firedButtons.get(button);
+    }
+
+    private static onKeyDown(e: KeyboardEvent) {
+        switch(e.code)
+        {
+            case "KeyW":
+                this.holdedButtons.set(Button.Up, true);
+
+                if(!e.repeat) {
+                    this.firedButtons.set(Button.Up, true);
+                }
+                break;
+            case "KeyS":
+                this.holdedButtons.set(Button.Down, true);
+
+                if(!e.repeat) {
+                    this.firedButtons.set(Button.Down, true);
+                }
+                break;
+            case "KeyA":
+                this.holdedButtons.set(Button.Left, true);
+
+                if(!e.repeat) {
+                    this.firedButtons.set(Button.Left, true);
+                }
+                break;
+            case "KeyD":
+                this.holdedButtons.set(Button.Right, true);
+
+                if(!e.repeat) {
+                    this.firedButtons.set(Button.Right, true);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    private static onKeyUp(e: KeyboardEvent) {
+        switch(e.code)
+        {
+            case "KeyW":
+                this.holdedButtons.set(Button.Up, false);
+                this.firedButtons.set(Button.Up, false);
+                break;
+            case "KeyS":
+                this.holdedButtons.set(Button.Down, false);
+                break;
+            case "KeyA":
+                this.holdedButtons.set(Button.Left, false);
+                break;
+            case "KeyD":
+                this.holdedButtons.set(Button.Right, false);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 var symbols = {
     "0": [
         [1 , 1 , 1],
@@ -152,148 +272,6 @@ let $nextCells:NodeListOf<Element>;
 let $score: Element;
 let $state: Element;
 
-function clear() {
-    $glassCells.forEach(cell => {
-        cell.classList.remove("active");
-    });
-}
-
-function clearNext() {
-    $nextCells.forEach(cell => {
-        cell.classList.remove("active");
-    });
-}
-
-function drawSymbol(symbol, start:Point, display) {
-    let cells = $glassCells;
-    let size = 10;
-
-    if(display === 1) {
-        cells = $nextCells;
-        size = 4;
-    }
-    
-    const symbolMeta = symbols[symbol];
-
-    for (let y = 0; y < symbolMeta.length; ++y) {
-        for (let x = 0; x < symbolMeta[y].length; ++x) {
-            const cell = cells[x + start.x + (y + start.y) * size];
-
-            if(symbolMeta[y][x] === 1 && cell) {
-                cell.classList.add("active");
-            }
-        }  
-    }     
-}
-
-function drawTime() {
-    const now = new Date();
-    const time = {
-        hours: (now.getHours() < 10 ? "0" : "") + now.getHours(),
-        minutes: (now.getMinutes() < 10 ? "0" : "") + now.getMinutes()
-    };
-    
-    const hoursDigits = time.hours.split("");
-    const minutesDigits = time.minutes.split("");
-    
-    drawSymbol(hoursDigits[0], new Point(1 , 2), 0);
-    drawSymbol(hoursDigits[1], new Point(6 , 2), 0);
-    drawSymbol(minutesDigits[0], new Point(1 , 13), 0);
-    drawSymbol(minutesDigits[1], new Point(6 , 13), 0);
-}
-
-function drawClock(): Promise<any> {
-    let dots = true;
-
-    return new Promise((resolve, reject) => {
-        const process = setInterval(function() {
-            clear();
-            drawTime();
-            
-            if(dots) {
-                drawDots();
-            }
-            
-            dots = !dots;
-        }, 500);
-    });
-}
-
-function drawСountdown(): Promise<any> {
-    let counter = 9;
-
-    return new Promise((resolve, reject) => {
-        const process = setInterval(function() {
-            clear();
-            drawSymbol("0", new Point(1 , 5), 0);
-            drawSymbol(counter.toString(), new Point(6 , 5), 0);
-            
-            if(counter === 0) {
-                clearInterval(process);
-                resolve();
-            }
-            
-            --counter;
-        }, 300);
-    });
-}
-
-function drawPieces(): Promise<any> {
-    let counter = 6;
-
-    return new Promise((resolve, reject) => {
-        const process = setInterval(function() {
-            clearNext();
-            drawSymbol(pieceTypes.get(counter), new Point(0 , 0), 1);
-            
-            if(counter === 0) {
-                clearInterval(process);
-                resolve();
-            }
-            
-            --counter;
-        }, 300);
-    });
-}
-
-function drawDots() {
-    drawSymbol(".", new Point(2 , 9), 0);
-    drawSymbol(".", new Point(6 , 9), 0);
-}
-
-function drawScore(value: number) {
-    $score.textContent = value.toString();
-}
-
-function drawState(play: boolean) {
-    $state.textContent = play ? "No" : "Yes";
-}
-
-function start() {
-    Input.initialize();
-    Display.initialize();
-    Time.initialize();
-
-    const game = new Game();
-
-    game.start();
-    
-    let now: number = performance.now();
-    
-    function frame(time: number) {
-        requestAnimationFrame(frame);
-
-        const delta = Math.min(1000, time - now);
-
-        game.update(delta);
-        game.draw();
-
-        now = time;
-    }
-
-    frame(now);
-}
-
 document.addEventListener("DOMContentLoaded", function() {
     $glassCells = document.querySelectorAll(".glass .cell");
     $nextCells = document.querySelectorAll(".next .cell");
@@ -301,92 +279,146 @@ document.addEventListener("DOMContentLoaded", function() {
     $state= document.querySelector(".state .value");
     
     Promise.all([
-        drawСountdown(),
-        drawPieces()
+        Display.drawСountdown(),
+        Display.drawPieces()
     ])
-        .then(start);
+        .then(() => Application.run(new Game()));
 });
 
-enum Key {
-    Up,
-    Down,
-    Left,
-    Right
-}
-
-class Input {
-    private static keys: Map<Key, boolean> = new Map<Key, boolean>([
-        [Key.Up, false],
-        [Key.Down, false],
-        [Key.Left, false],
-        [Key.Right, false]
-    ]);
-
-    static initialize() {
-        window.addEventListener("keydown", (e: KeyboardEvent) => this.onKeyDown(e));
-        window.addEventListener("keyup", (e: KeyboardEvent) => this.onKeyUp(e));
-    }
-
-    public static getKey(key:Key) {
-        return this.keys.get(key);
-    }
-
-    private static onKeyDown(e: KeyboardEvent) {
-        switch(e.code)
-        {
-            case "KeyW":
-                this.keys.set(Key.Up, true);
-                break;
-            case "KeyS":
-                this.keys.set(Key.Down, true);
-                break;
-            case "KeyA":
-                this.keys.set(Key.Left, true);
-                break;
-            case "KeyD":
-                this.keys.set(Key.Right, true);
-                break;
-            default:
-                break;
-        }
-    }
-
-    private static onKeyUp(e: KeyboardEvent) {
-        switch(e.code)
-        {
-            case "KeyW":
-                this.keys.set(Key.Up, false);
-                break;
-            case "KeyS":
-                this.keys.set(Key.Down, false);
-                break;
-            case "KeyA":
-                this.keys.set(Key.Left, false);
-                break;
-            case "KeyD":
-                this.keys.set(Key.Right, false);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 class Display {
-    public static width: number;
-    public static height: number;
+    public static width: number = 10;
+    public static height: number = 20;
 
-    static initialize() {
-        this.width = 10;
-        this.height = 20;
+    public static clear() {
+        $glassCells.forEach(cell => {
+            cell.classList.remove("active");
+        });
     }
-}
+    
+    public static clearNext() {
+        $nextCells.forEach(cell => {
+            cell.classList.remove("active");
+        });
+    }
 
-class Time {
-    public static deltaTime: number;
+    public static drawSymbol(symbol: string, start: Point, display: number) {
+        let cells = $glassCells;
+        let size = 10;
+    
+        if(display === 1) {
+            cells = $nextCells;
+            size = 4;
+        }
+        
+        const symbolMeta = symbols[symbol];
+    
+        for (let y = 0; y < symbolMeta.length; ++y) {
+            for (let x = 0; x < symbolMeta[y].length; ++x) {
+                const cell = cells[x + start.x + (y + start.y) * size];
+    
+                if(symbolMeta[y][x] === 1 && cell) {
+                    cell.classList.add("active");
+                }
+            }  
+        }     
+    }
 
-    static initialize() {
-        this.deltaTime = 0;
+    public static drawGlass(glass: number[][]) {
+        let cells = $glassCells;
+        
+        for (let y = 0; y < glass.length; ++y) {
+            for (let x = 0; x < glass[y].length; ++x) {
+                const cell = cells[x + y  * Display.width];
+    
+                if(glass[y][x] === 1 && cell) {
+                    cell.classList.add("active");
+                }
+            }  
+        }     
+    }
+    
+    public static drawScore(value: number) {
+        $score.textContent = value.toString();
+    }
+
+    public static drawState(play: boolean) {
+        $state.textContent = play ? "No" : "Yes";
+    }
+
+    //----
+    public static drawClock(): Promise<any> {
+        let dots = true;
+    
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                Display.clear();
+                Display.drawTime();
+                
+                if(dots) {
+                    this.drawDots();
+                }
+                
+                dots = !dots;
+            }, 500);
+        });
+    }
+    
+    public static drawСountdown(): Promise<any> {
+        let counter = 9;
+    
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                Display.clear();
+                Display.drawSymbol("0", new Point(1 , 5), 0);
+                Display.drawSymbol(counter.toString(), new Point(6 , 5), 0);
+                
+                if(counter === 0) {
+                    clearInterval(process);
+                    resolve();
+                }
+                
+                --counter;
+            }, 300);
+        });
+    }
+    
+    public static drawPieces(): Promise<any> {
+        let counter = 6;
+    
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                Display.clearNext();
+                Display.drawSymbol(pieceTypes.get(counter), new Point(0 , 0), 1);
+                
+                if(counter === 0) {
+                    clearInterval(process);
+                    resolve();
+                }
+                
+                --counter;
+            }, 300);
+        });
+    }
+    
+    public static drawDots() {
+        Display.drawSymbol(".", new Point(2 , 9), 0);
+        Display.drawSymbol(".", new Point(6 , 9), 0);
+    }
+
+    public static drawTime() {
+        const now = new Date();
+        const time = {
+            hours: (now.getHours() < 10 ? "0" : "") + now.getHours(),
+            minutes: (now.getMinutes() < 10 ? "0" : "") + now.getMinutes()
+        };
+        
+        const hoursDigits = time.hours.split("");
+        const minutesDigits = time.minutes.split("");
+        
+        Display.drawSymbol(hoursDigits[0], new Point(1 , 2), 0);
+        Display.drawSymbol(hoursDigits[1], new Point(6 , 2), 0);
+        Display.drawSymbol(minutesDigits[0], new Point(1 , 13), 0);
+        Display.drawSymbol(minutesDigits[1], new Point(6 , 13), 0);
     }
 }
 
@@ -410,74 +442,21 @@ class Piece {
     }
 
     public update(delta: number) {
-        if(Input.getKey(Key.Left)) {
-            let collision = false;
-
-            const symbolMeta = symbols[this.type];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1 && this.position.x - 1 + x < 0) {
-                        collision = true;
-
-                        if(collision) {
-                            break;
-                        }
-                    }
-                }
-                
-                if(collision) {
-                    break;
-                }
-            }     
-
-            if(!collision) {
-                this.position.x -= 1;
-            }
-        }
-
-        if(Input.getKey(Key.Right)) {
-            let collision = false;
-
-            const symbolMeta = symbols[this.type];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1 && this.position.x + 1 + x >= Display.width) {
-                        collision = true;
-
-                        if(collision) {
-                            break;
-                        }
-                    }
-                }
-                
-                if(collision) {
-                    break;
-                }
-            }     
-
-            if(!collision) {
-                this.position.x += 1;
-            }
-        }
-
-        if(Input.getKey(Key.Down)) {
-            this.position.y += 1;
-        }
     }
 
     public draw() {
-        drawSymbol(this.type, this.position, 0);
+        Display.drawSymbol(this.type, this.position, 0);
     }
 }
 
-class Game {
+class Game implements IApplicationObject {
     private startTime: number;
     private play:  boolean;
     private speed: number;
     private current: Piece;
     private next: Piece;
+
+    private glass: number[][];
 
     private score: number;
 
@@ -489,11 +468,14 @@ class Game {
         this.current = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
 
+        this.glass = new Array(Display.height)
+            .fill(0).map(() => new Array(Display.width).fill(0));
+
         this.score = 0;
     }
 
     public update(delta: number) {
-        if(Input.getKey(Key.Up)) {
+        if(Application.getButtonDown(Button.Up)) {
             this.play = !this.play;
         }
 
@@ -502,37 +484,191 @@ class Game {
         }
 
         this.current.update(delta);
-        //this.next.update(delta);
+        this.next.update(delta);
+
+        if(Application.getButton(Button.Left)) {
+            let collision = false;
+
+            const symbolMeta = symbols[this.current.type];
+
+            for (let y = 0; y < symbolMeta.length; ++y) {
+                for (let x = 0; x < symbolMeta[y].length; ++x) {
+                    if(symbolMeta[y][x] === 1 && this.current.position.x - 1 + x < 0) {
+                        collision = true;
+
+                        if(collision) {
+                            break;
+                        }
+                    }
+                }
+                
+                if(collision) {
+                    break;
+                }
+            }     
+
+            if(!collision) {
+                this.current.position.x -= 1;
+            }
+        }
+
+        if(Application.getButton(Button.Right)) {
+            let collision = false;
+
+            const symbolMeta = symbols[this.current.type];
+
+            for (let y = 0; y < symbolMeta.length; ++y) {
+                for (let x = 0; x < symbolMeta[y].length; ++x) {
+                    if(symbolMeta[y][x] === 1 && this.current.position.x + 1 + x > Display.width - 1) {
+                        collision = true;
+
+                        if(collision) {
+                            break;
+                        }
+                    }
+                }
+                
+                if(collision) {
+                    break;
+                }
+            }     
+
+            if(!collision) {
+                this.current.position.x += 1;
+            }
+        }
+
+        if(Application.getButton(Button.Down)) {
+            let collision = false;
+
+            const symbolMeta = symbols[this.current.type];
+
+            for (let y = 0; y < symbolMeta.length; ++y) {
+                for (let x = 0; x < symbolMeta[y].length; ++x) {
+                    if(symbolMeta[y][x] === 1 && this.current.position.y + 1 + y > Display.height - 1) {
+                        collision = true;
+
+                        if(collision) {
+                            break;
+                        }
+                    }
+                }
+                
+                if(collision) {
+                    break;
+                }
+            }
+
+            if(!collision) {
+                this.current.position.y += 1;
+            }
+            else {
+                this.freezePiece(this.current);
+                this.removeLines();
+                this.nextPiece();
+                this.score += getRandomInt(10, 20);
+            }
+        }
 
         this.startTime += delta;
 
         if(this.startTime > this.speed) {
-            this.startTime -= this.speed;
-            this.current.position.y += 1;
-        }
+            let collision = false;
 
-        if(this.current.position.y >= Display.height) {
-            this.current = this.next;
-            this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
+            const symbolMeta = symbols[this.current.type];
 
-            this.score += getRandomInt(10, 20);
+            for (let y = 0; y < symbolMeta.length; ++y) {
+                for (let x = 0; x < symbolMeta[y].length; ++x) {
+                    if(symbolMeta[y][x] === 1 && this.current.position.y + 1 + y > Display.height - 1) {
+                        collision = true;
+
+                        if(collision) {
+                            break;
+                        }
+                    }
+                }
+                
+                if(collision) {
+                    break;
+                }
+            }
+
+            if(!collision) {
+                this.startTime -= this.speed;
+                this.current.position.y += 1;
+            }
+            else {
+                this.freezePiece(this.current);
+                this.removeLines();
+                this.nextPiece();
+                this.score += getRandomInt(10, 20);
+            }
         }
     }
 
     public draw() {
-        clear();
+        Display.clear();
 
         this.current.draw();
         //this.next.draw();
 
-        clearNext();
-        drawSymbol(this.next.type, new Point(0, 0), 1);
+        Display.clearNext();
+        Display.drawSymbol(this.next.type, new Point(0, 0), 1);
 
-        drawScore(this.score);
-        drawState(this.play);
+        Display.drawGlass(this.glass);
+
+        Display.drawScore(this.score);
+        Display.drawState(this.play);
     }
 
     public start() {
         this.play = true;
+    }
+
+    private nextPiece() {
+        this.current = this.next;
+        this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
+    }
+
+    private freezePiece(piece: Piece) {
+        const symbolMeta = symbols[this.current.type];
+
+        for (let y = 0; y < symbolMeta.length; ++y) {
+            for (let x = 0; x < symbolMeta[y].length; ++x) {
+                if(symbolMeta[y][x] === 1) {
+                    this.glass[piece.position.y + y][piece.position.x + x] = 1;
+                }
+            }
+        }
+    }
+
+    private removeLines() {
+        let count = 0;
+
+        for (let y = 0; y < Display.height; ++y) {
+            let line = true;
+            
+            for (let x = 0; x < Display.width; ++x) {
+                line = line && this.glass[y][x] === 1;
+            }
+
+            if(line) {
+                ++count;
+
+                for (let yy = y; yy > 0; --yy) {
+                    for (let xx = 0; xx < Display.width; ++xx) {
+                        this.glass[yy][xx] = this.glass[yy - 1][xx]
+                    }
+                }
+
+                for (let xx = 0; xx < Display.width; ++xx) {
+                    this.glass[0][xx] = 0
+                }
+            }
+        }
+
+        if(count > 0) {
+            this.score += count * 100;
+        }
     }
 }
