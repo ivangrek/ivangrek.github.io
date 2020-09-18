@@ -1,123 +1,3 @@
-enum Button {
-    Up,
-    Down,
-    Left,
-    Right
-}
-
-interface IApplicationObject {
-    update: (delta: number) => void;
-    draw: () => void;
-}
-
-class Application {
-    private static holdedButtons: Map<Button, boolean> = new Map<Button, boolean>([
-        [Button.Up, false],
-        [Button.Down, false],
-        [Button.Left, false],
-        [Button.Right, false]
-    ]);
-
-    private static firedButtons: Map<Button, boolean> = new Map<Button, boolean>([
-        [Button.Up, false],
-        [Button.Down, false],
-        [Button.Left, false],
-        [Button.Right, false]
-    ]);
-    
-    public static run(root: IApplicationObject) {
-        window.addEventListener("keydown", (e: KeyboardEvent) => this.onKeyDown(e), false);
-        window.addEventListener("keyup", (e: KeyboardEvent) => this.onKeyUp(e), false);
-
-        let now: number = performance.now();
-
-        const frame = (time: number) => {
-            requestAnimationFrame(frame);
-
-            const delta = Math.min(1000, time - now);
-
-            root.update(delta);
-            root.draw();
-
-            now = time;
-
-            this.firedButtons = new Map<Button, boolean>([
-                [Button.Up, false],
-                [Button.Down, false],
-                [Button.Left, false],
-                [Button.Right, false]
-            ]);
-        }
-
-        requestAnimationFrame(frame);
-    }
-
-    public static getButton(button: Button): boolean {
-        return this.holdedButtons.get(button);
-    }
-
-    public static getButtonDown(button: Button): boolean {
-        return this.firedButtons.get(button);
-    }
-
-    private static onKeyDown(e: KeyboardEvent) {
-        switch(e.code)
-        {
-            case "KeyW":
-                this.holdedButtons.set(Button.Up, true);
-
-                if(!e.repeat) {
-                    this.firedButtons.set(Button.Up, true);
-                }
-                break;
-            case "KeyS":
-                this.holdedButtons.set(Button.Down, true);
-
-                if(!e.repeat) {
-                    this.firedButtons.set(Button.Down, true);
-                }
-                break;
-            case "KeyA":
-                this.holdedButtons.set(Button.Left, true);
-
-                if(!e.repeat) {
-                    this.firedButtons.set(Button.Left, true);
-                }
-                break;
-            case "KeyD":
-                this.holdedButtons.set(Button.Right, true);
-
-                if(!e.repeat) {
-                    this.firedButtons.set(Button.Right, true);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    private static onKeyUp(e: KeyboardEvent) {
-        switch(e.code)
-        {
-            case "KeyW":
-                this.holdedButtons.set(Button.Up, false);
-                this.firedButtons.set(Button.Up, false);
-                break;
-            case "KeyS":
-                this.holdedButtons.set(Button.Down, false);
-                break;
-            case "KeyA":
-                this.holdedButtons.set(Button.Left, false);
-                break;
-            case "KeyD":
-                this.holdedButtons.set(Button.Right, false);
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 var symbols = {
     "0": [
         [1 , 1 , 1],
@@ -271,13 +151,15 @@ let $glassCells:NodeListOf<Element>;
 let $nextCells:NodeListOf<Element>;
 let $score: Element;
 let $state: Element;
+let $sound: HTMLAudioElement ;
 
 document.addEventListener("DOMContentLoaded", function() {
     $glassCells = document.querySelectorAll(".glass .cell");
     $nextCells = document.querySelectorAll(".next .cell");
     $score = document.querySelector(".score .value");
-    $state= document.querySelector(".state .value");
-    
+    $state = document.querySelector(".state .value");
+    $sound = <HTMLAudioElement>document.getElementById("audio");
+
     Promise.all([
         Display.drawСountdown(),
         Display.drawPieces()
@@ -301,7 +183,7 @@ class Display {
         });
     }
 
-    public static drawSymbol(symbol: string, start: Point, display: number) {
+    public static drawPixel(point: Point, display: number) {
         let cells = $glassCells;
         let size = 10;
     
@@ -310,28 +192,30 @@ class Display {
             size = 4;
         }
         
-        const symbolMeta = symbols[symbol];
+        const cell = cells[point.x + (point.y) * size];
     
+        if(cell) {
+            cell.classList.add("active");
+        }    
+    }
+
+    public static drawSymbol(symbol: string, start: Point, display: number) {
+        const symbolMeta = symbols[symbol];
+
         for (let y = 0; y < symbolMeta.length; ++y) {
             for (let x = 0; x < symbolMeta[y].length; ++x) {
-                const cell = cells[x + start.x + (y + start.y) * size];
-    
-                if(symbolMeta[y][x] === 1 && cell) {
-                    cell.classList.add("active");
+                if(symbolMeta[y][x] === 1) {
+                    Display.drawPixel(new Point(x + start.x, y + start.y), display);
                 }
             }  
         }     
     }
 
     public static drawGlass(glass: number[][]) {
-        let cells = $glassCells;
-        
         for (let y = 0; y < glass.length; ++y) {
             for (let x = 0; x < glass[y].length; ++x) {
-                const cell = cells[x + y  * Display.width];
-    
-                if(glass[y][x] === 1 && cell) {
-                    cell.classList.add("active");
+                if(glass[y][x] === 1) {
+                    Display.drawPixel(new Point(x, y), 0);
                 }
             }  
         }     
@@ -342,7 +226,7 @@ class Display {
     }
 
     public static drawState(play: boolean) {
-        $state.textContent = play ? "No" : "Yes";
+        $state.textContent = play ? "Play" : "Over";
     }
 
     //----
@@ -361,6 +245,16 @@ class Display {
                 dots = !dots;
             }, 500);
         });
+    }
+
+    public static drawClock2() {
+        Display.drawTime();
+
+        const now = new Date();
+
+        if(Math.floor(now.getMilliseconds() / 500) === 1) {
+            this.drawDots();
+        }
     }
     
     public static drawСountdown(): Promise<any> {
@@ -433,19 +327,251 @@ class Point {
 } 
 
 class Piece {
+    private pieces: Map<PieceType, any> = new Map<PieceType, any>([
+        [
+            PieceType.I, [
+                [
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+        [
+            PieceType.L, [
+                [
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 0],
+                    [1, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [1, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 1, 0],
+                    [1, 1, 1, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+        [
+            PieceType.J, [
+                [
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [1, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [1, 0, 0, 0],
+                    [1, 1, 1, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 1, 0],
+                    [0, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+        [
+            PieceType.S, [
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [1, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [1, 0, 0, 0],
+                    [1, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 1, 0],
+                    [1, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+        [
+            PieceType.Z, [
+                [
+                    [0, 0, 0, 0],
+                    [1, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0, 0],
+                    [1, 1, 0, 0],
+                    [1, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [1, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+        [
+            PieceType.O, [
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+        [
+            PieceType.T, [
+                [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0, 0],
+                    [1, 1, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0, 0],
+                    [1, 1, 1, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0]
+                ]
+            ],
+        ],
+    ]);
+    
     public type: PieceType;
     public position: Point;
+    
+    private rotation: number;
+    public blocks: number[][];
 
     constructor(type: PieceType, position: Point) {
-        this.type = type;
+        this.type = pieceTypes.get(getRandomInt(0, 7));//type;
         this.position = position;
+            
+        this.rotation = getRandomInt(0, 4);
+        this.blocks = this.pieces.get(this.type)[this.rotation];
     }
 
     public update(delta: number) {
     }
 
     public draw() {
-        Display.drawSymbol(this.type, this.position, 0);
+        for (let y = 0; y < this.blocks.length; ++y) {
+            for (let x = 0; x < this.blocks[y].length; ++x) {
+                if(this.blocks[y][x] === 1) {
+                    Display.drawPixel(new Point(this.position.x + x, this.position.y + y), 0);
+                }               
+            }
+        }
+    }
+
+    public rotate() {
+        this.rotation = (this.rotation + 1) % 4;
+        this.blocks = this.pieces.get(this.type)[this.rotation];
+    }
+
+    public moveLeft() {
+        --this.position.x;
+    }
+
+    public moveRight() {
+        ++this.position.x;
+    }
+
+    public moveUp() {
+        --this.position.y;
+    }
+
+    public moveDown() {
+        ++this.position.y;
     }
 }
 
@@ -455,190 +581,144 @@ class Game implements IApplicationObject {
     private speed: number;
     private current: Piece;
     private next: Piece;
-
     private glass: number[][];
-
     private score: number;
 
     constructor() {
         this.startTime = 0;
-        this.play = false;
+        this.play = true;
         this.speed = 1000;
 
         this.current = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
 
         this.glass = new Array(Display.height)
-            .fill(0).map(() => new Array(Display.width).fill(0));
+            .fill(0)
+            .map(() => new Array(Display.width).fill(0));
 
         this.score = 0;
     }
 
     public update(delta: number) {
-        if(Application.getButtonDown(Button.Up)) {
-            this.play = !this.play;
-        }
+        this.current.update(delta);
+        this.next.update(delta);
 
         if(!this.play) {
             return;
         }
+        
+        if(Application.getButtonDown(Button.Up)) {
+            this.current.rotate();
 
-        this.current.update(delta);
-        this.next.update(delta);
+            if(this.hasCollisions()) {
+                this.current.rotate();
+                this.current.rotate();
+                this.current.rotate();
+            }
+        }
 
         if(Application.getButtonDown(Button.Left)) {
-            let collision = false;
+            this.current.moveLeft();
 
-            const symbolMeta = symbols[this.current.type];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1) {
-                        if(this.current.position.x - 1 + x < 0) {
-                            collision = true;
-                            break;
-                        }
-                        
-                        if(this.glass[this.current.position.y + y][this.current.position.x - 1 + x] === 1) {
-                            collision = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if(collision) {
-                    break;
-                }
-            }     
-
-            if(!collision) {
-                this.current.position.x -= 1;
+            if(this.hasCollisions()) {
+                this.current.moveRight();
             }
         }
 
         if(Application.getButtonDown(Button.Right)) {
-            let collision = false;
+            this.current.moveRight();
 
-            const symbolMeta = symbols[this.current.type];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1) {
-                        if(this.current.position.x + 1 + x > Display.width - 1) {
-                            collision = true;
-                            break;
-                        }
-                        
-                        if(this.glass[this.current.position.y + y][this.current.position.x + 1 + x] === 1) {
-                            collision = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if(collision) {
-                    break;
-                }
-            }     
-
-            if(!collision) {
-                this.current.position.x += 1;
-            }
-        }
-
-        if(Application.getButton(Button.Down)) {
-            let collision = false;
-
-            const symbolMeta = symbols[this.current.type];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1) {
-                        if(this.current.position.y + 1 + y > Display.height - 1) {
-                            collision = true;
-                            break;
-                        }
-                        
-                        if(this.glass[this.current.position.y + 1 + y][this.current.position.x + x] === 1) {
-                            collision = true;
-                            break;
-                        }
-                    }
-                }
-                
-                if(collision) {
-                    break;
-                }
-            }
-
-            if(!collision) {
-                this.current.position.y += 1;
-            }
-            else {
-                this.freezePiece(this.current);
-                this.removeLines();
-                this.nextPiece();
-                this.score += getRandomInt(10, 20);
+            if(this.hasCollisions()) {
+                this.current.moveLeft();
             }
         }
 
         this.startTime += delta;
 
-        if(this.startTime > this.speed) {
-            let collision = false;
+        const timeToDrop = this.startTime > this.speed;
 
-            const symbolMeta = symbols[this.current.type];
+        if(Application.getButton(Button.Down) || timeToDrop) {
+            this.current.moveDown();
 
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1) {
-                        if(this.current.position.y + 1 + y > Display.height - 1) {
-                            collision = true;
-                            break;
-                        }
-                        
-                        if(this.glass[this.current.position.y + 1 + y][this.current.position.x + x] === 1) {
-                            collision = true;
-                            break;
-                        }
-                    }
-                }
+            if(this.hasCollisions()) {
+                $sound.currentTime = 0;
+                $sound.play();
+
+                this.current.moveUp();
+                this.freezePiece();
                 
-                if(collision) {
-                    break;
+                const lines = this.removeLines();
+                
+                this.addScore(lines);
+
+                this.nextPiece();
+
+                if(this.hasCollisions()) {
+                    this.play = false;
                 }
             }
 
-            if(!collision) {
+            if(timeToDrop) {
                 this.startTime -= this.speed;
-                this.current.position.y += 1;
-            }
-            else {
-                this.freezePiece(this.current);
-                this.removeLines();
-                this.nextPiece();
-                this.score += getRandomInt(10, 20);
             }
         }
     }
 
     public draw() {
-        Display.clear();
+        Display.drawState(this.play);
+
+        if(!this.play) {
+            Display.drawClock2();
+            return;
+        }
 
         this.current.draw();
         //this.next.draw();
 
         Display.clearNext();
-        Display.drawSymbol(this.next.type, new Point(0, 0), 1);
+
+        for (let y = 0; y < this.next.blocks.length; ++y) {
+            for (let x = 0; x < this.next.blocks[y].length; ++x) {
+                if(this.next.blocks[y][x] === 1) {
+                    Display.drawPixel(new Point(x, y), 1);
+                }               
+            }
+        }
 
         Display.drawGlass(this.glass);
 
         Display.drawScore(this.score);
-        Display.drawState(this.play);
+        //Display.drawState(this.play);
     }
 
     public start() {
         this.play = true;
+    }
+
+    private hasCollisions(): boolean {
+        for (let y = 0; y < this.current.blocks.length; ++y) {
+            for (let x = 0; x < this.current.blocks[y].length; ++x) {
+                if(this.current.blocks[y][x] === 1) {
+                    if(this.current.position.x + x < 0) {
+                        return true;
+                    }
+
+                    if(this.current.position.x + x > Display.width - 1) {
+                        return true;
+                    }
+
+                    if(this.current.position.y + y > Display.height - 1) {
+                        return true;
+                    }
+                    
+                    if(this.glass[this.current.position.y + y][this.current.position.x + x] === 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private nextPiece() {
@@ -646,19 +726,17 @@ class Game implements IApplicationObject {
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
     }
 
-    private freezePiece(piece: Piece) {
-        const symbolMeta = symbols[this.current.type];
-
-        for (let y = 0; y < symbolMeta.length; ++y) {
-            for (let x = 0; x < symbolMeta[y].length; ++x) {
-                if(symbolMeta[y][x] === 1) {
-                    this.glass[piece.position.y + y][piece.position.x + x] = 1;
-                }
+    private freezePiece() {
+        for (let y = 0; y < this.current.blocks.length; ++y) {
+            for (let x = 0; x < this.current.blocks[y].length; ++x) {
+                if(this.current.blocks[y][x] === 1) {
+                    this.glass[this.current.position.y + y][this.current.position.x + x] = 1;
+                }               
             }
         }
     }
 
-    private removeLines() {
+    private removeLines(): number {
         let count = 0;
 
         for (let y = 0; y < Display.height; ++y) {
@@ -683,8 +761,10 @@ class Game implements IApplicationObject {
             }
         }
 
-        if(count > 0) {
-            this.score += count * 100;
-        }
+        return count;
+    }
+
+    private addScore(lines: number) {
+        this.score += lines * 100 + getRandomInt(10, 20);
     }
 }

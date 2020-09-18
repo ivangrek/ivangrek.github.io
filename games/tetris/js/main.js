@@ -1,98 +1,3 @@
-var Button;
-(function (Button) {
-    Button[Button["Up"] = 0] = "Up";
-    Button[Button["Down"] = 1] = "Down";
-    Button[Button["Left"] = 2] = "Left";
-    Button[Button["Right"] = 3] = "Right";
-})(Button || (Button = {}));
-class Application {
-    static run(root) {
-        window.addEventListener("keydown", (e) => this.onKeyDown(e), false);
-        window.addEventListener("keyup", (e) => this.onKeyUp(e), false);
-        let now = performance.now();
-        const frame = (time) => {
-            requestAnimationFrame(frame);
-            const delta = Math.min(1000, time - now);
-            root.update(delta);
-            root.draw();
-            now = time;
-            this.firedButtons = new Map([
-                [Button.Up, false],
-                [Button.Down, false],
-                [Button.Left, false],
-                [Button.Right, false]
-            ]);
-        };
-        requestAnimationFrame(frame);
-    }
-    static getButton(button) {
-        return this.holdedButtons.get(button);
-    }
-    static getButtonDown(button) {
-        return this.firedButtons.get(button);
-    }
-    static onKeyDown(e) {
-        switch (e.code) {
-            case "KeyW":
-                this.holdedButtons.set(Button.Up, true);
-                if (!e.repeat) {
-                    this.firedButtons.set(Button.Up, true);
-                }
-                break;
-            case "KeyS":
-                this.holdedButtons.set(Button.Down, true);
-                if (!e.repeat) {
-                    this.firedButtons.set(Button.Down, true);
-                }
-                break;
-            case "KeyA":
-                this.holdedButtons.set(Button.Left, true);
-                if (!e.repeat) {
-                    this.firedButtons.set(Button.Left, true);
-                }
-                break;
-            case "KeyD":
-                this.holdedButtons.set(Button.Right, true);
-                if (!e.repeat) {
-                    this.firedButtons.set(Button.Right, true);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-    static onKeyUp(e) {
-        switch (e.code) {
-            case "KeyW":
-                this.holdedButtons.set(Button.Up, false);
-                this.firedButtons.set(Button.Up, false);
-                break;
-            case "KeyS":
-                this.holdedButtons.set(Button.Down, false);
-                break;
-            case "KeyA":
-                this.holdedButtons.set(Button.Left, false);
-                break;
-            case "KeyD":
-                this.holdedButtons.set(Button.Right, false);
-                break;
-            default:
-                break;
-        }
-    }
-}
-Application.holdedButtons = new Map([
-    [Button.Up, false],
-    [Button.Down, false],
-    [Button.Left, false],
-    [Button.Right, false]
-]);
-Application.firedButtons = new Map([
-    [Button.Up, false],
-    [Button.Down, false],
-    [Button.Left, false],
-    [Button.Right, false]
-]);
 var symbols = {
     "0": [
         [1, 1, 1],
@@ -242,11 +147,13 @@ let $glassCells;
 let $nextCells;
 let $score;
 let $state;
+let $sound;
 document.addEventListener("DOMContentLoaded", function () {
     $glassCells = document.querySelectorAll(".glass .cell");
     $nextCells = document.querySelectorAll(".next .cell");
     $score = document.querySelector(".score .value");
     $state = document.querySelector(".state .value");
+    $sound = document.getElementById("audio");
     Promise.all([
         Display.drawСountdown(),
         Display.drawPieces()
@@ -264,30 +171,33 @@ class Display {
             cell.classList.remove("active");
         });
     }
-    static drawSymbol(symbol, start, display) {
+    static drawPixel(point, display) {
         let cells = $glassCells;
         let size = 10;
         if (display === 1) {
             cells = $nextCells;
             size = 4;
         }
+        const cell = cells[point.x + (point.y) * size];
+        if (cell) {
+            cell.classList.add("active");
+        }
+    }
+    static drawSymbol(symbol, start, display) {
         const symbolMeta = symbols[symbol];
         for (let y = 0; y < symbolMeta.length; ++y) {
             for (let x = 0; x < symbolMeta[y].length; ++x) {
-                const cell = cells[x + start.x + (y + start.y) * size];
-                if (symbolMeta[y][x] === 1 && cell) {
-                    cell.classList.add("active");
+                if (symbolMeta[y][x] === 1) {
+                    Display.drawPixel(new Point(x + start.x, y + start.y), display);
                 }
             }
         }
     }
     static drawGlass(glass) {
-        let cells = $glassCells;
         for (let y = 0; y < glass.length; ++y) {
             for (let x = 0; x < glass[y].length; ++x) {
-                const cell = cells[x + y * Display.width];
-                if (glass[y][x] === 1 && cell) {
-                    cell.classList.add("active");
+                if (glass[y][x] === 1) {
+                    Display.drawPixel(new Point(x, y), 0);
                 }
             }
         }
@@ -296,7 +206,7 @@ class Display {
         $score.textContent = value.toString();
     }
     static drawState(play) {
-        $state.textContent = play ? "No" : "Yes";
+        $state.textContent = play ? "Play" : "Over";
     }
     //----
     static drawClock() {
@@ -311,6 +221,13 @@ class Display {
                 dots = !dots;
             }, 500);
         });
+    }
+    static drawClock2() {
+        Display.drawTime();
+        const now = new Date();
+        if (Math.floor(now.getMilliseconds() / 500) === 1) {
+            this.drawDots();
+        }
     }
     static drawСountdown() {
         let counter = 9;
@@ -369,153 +286,349 @@ class Point {
 }
 class Piece {
     constructor(type, position) {
-        this.type = type;
+        this.pieces = new Map([
+            [
+                PieceType.I, [
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 1],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+            [
+                PieceType.L, [
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 0],
+                        [1, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [1, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 1, 0],
+                        [1, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+            [
+                PieceType.J, [
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [1, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [1, 0, 0, 0],
+                        [1, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 1, 0],
+                        [0, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+            [
+                PieceType.S, [
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 1, 0],
+                        [1, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [1, 0, 0, 0],
+                        [1, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 1, 0],
+                        [1, 1, 0, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+            [
+                PieceType.Z, [
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 0, 0],
+                        [1, 1, 0, 0],
+                        [1, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [1, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+            [
+                PieceType.O, [
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 0, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 1, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+            [
+                PieceType.T, [
+                    [
+                        [0, 0, 0, 0],
+                        [1, 1, 1, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 0, 0],
+                        [1, 1, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 0, 0],
+                        [1, 1, 1, 0],
+                        [0, 0, 0, 0],
+                        [0, 0, 0, 0]
+                    ],
+                    [
+                        [0, 1, 0, 0],
+                        [0, 1, 1, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, 0]
+                    ]
+                ],
+            ],
+        ]);
+        this.type = pieceTypes.get(getRandomInt(0, 7)); //type;
         this.position = position;
+        this.rotation = getRandomInt(0, 4);
+        this.blocks = this.pieces.get(this.type)[this.rotation];
     }
     update(delta) {
     }
     draw() {
-        Display.drawSymbol(this.type, this.position, 0);
+        for (let y = 0; y < this.blocks.length; ++y) {
+            for (let x = 0; x < this.blocks[y].length; ++x) {
+                if (this.blocks[y][x] === 1) {
+                    Display.drawPixel(new Point(this.position.x + x, this.position.y + y), 0);
+                }
+            }
+        }
+    }
+    rotate() {
+        this.rotation = (this.rotation + 1) % 4;
+        this.blocks = this.pieces.get(this.type)[this.rotation];
+    }
+    moveLeft() {
+        --this.position.x;
+    }
+    moveRight() {
+        ++this.position.x;
+    }
+    moveUp() {
+        --this.position.y;
+    }
+    moveDown() {
+        ++this.position.y;
     }
 }
 class Game {
     constructor() {
         this.startTime = 0;
-        this.play = false;
+        this.play = true;
         this.speed = 1000;
         this.current = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
         this.glass = new Array(Display.height)
-            .fill(0).map(() => new Array(Display.width).fill(0));
+            .fill(0)
+            .map(() => new Array(Display.width).fill(0));
         this.score = 0;
     }
     update(delta) {
-        if (Application.getButtonDown(Button.Up)) {
-            this.play = !this.play;
-        }
+        this.current.update(delta);
+        this.next.update(delta);
         if (!this.play) {
             return;
         }
-        this.current.update(delta);
-        this.next.update(delta);
-        if (Application.getButton(Button.Left)) {
-            let collision = false;
-            const symbolMeta = symbols[this.current.type];
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if (symbolMeta[y][x] === 1 && this.current.position.x - 1 + x < 0) {
-                        collision = true;
-                        if (collision) {
-                            break;
-                        }
-                    }
-                }
-                if (collision) {
-                    break;
-                }
-            }
-            if (!collision) {
-                this.current.position.x -= 1;
+        if (Application.getButtonDown(Button.Up)) {
+            this.current.rotate();
+            if (this.hasCollisions()) {
+                this.current.rotate();
+                this.current.rotate();
+                this.current.rotate();
             }
         }
-        if (Application.getButton(Button.Right)) {
-            let collision = false;
-            const symbolMeta = symbols[this.current.type];
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if (symbolMeta[y][x] === 1 && this.current.position.x + 1 + x > Display.width - 1) {
-                        collision = true;
-                        if (collision) {
-                            break;
-                        }
-                    }
-                }
-                if (collision) {
-                    break;
-                }
-            }
-            if (!collision) {
-                this.current.position.x += 1;
+        if (Application.getButtonDown(Button.Left)) {
+            this.current.moveLeft();
+            if (this.hasCollisions()) {
+                this.current.moveRight();
             }
         }
-        if (Application.getButton(Button.Down)) {
-            let collision = false;
-            const symbolMeta = symbols[this.current.type];
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if (symbolMeta[y][x] === 1 && this.current.position.y + 1 + y > Display.height - 1) {
-                        collision = true;
-                        if (collision) {
-                            break;
-                        }
-                    }
-                }
-                if (collision) {
-                    break;
-                }
-            }
-            if (!collision) {
-                this.current.position.y += 1;
-            }
-            else {
-                this.freezePiece(this.current);
-                this.removeLines();
-                this.nextPiece();
-                this.score += getRandomInt(10, 20);
+        if (Application.getButtonDown(Button.Right)) {
+            this.current.moveRight();
+            if (this.hasCollisions()) {
+                this.current.moveLeft();
             }
         }
         this.startTime += delta;
-        if (this.startTime > this.speed) {
-            let collision = false;
-            const symbolMeta = symbols[this.current.type];
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if (symbolMeta[y][x] === 1 && this.current.position.y + 1 + y > Display.height - 1) {
-                        collision = true;
-                        if (collision) {
-                            break;
-                        }
-                    }
-                }
-                if (collision) {
-                    break;
-                }
-            }
-            if (!collision) {
-                this.startTime -= this.speed;
-                this.current.position.y += 1;
-            }
-            else {
-                this.freezePiece(this.current);
-                this.removeLines();
+        const timeToDrop = this.startTime > this.speed;
+        if (Application.getButton(Button.Down) || timeToDrop) {
+            this.current.moveDown();
+            if (this.hasCollisions()) {
+                $sound.currentTime = 0;
+                $sound.play();
+                this.current.moveUp();
+                this.freezePiece();
+                const lines = this.removeLines();
+                this.addScore(lines);
                 this.nextPiece();
-                this.score += getRandomInt(10, 20);
+                if (this.hasCollisions()) {
+                    this.play = false;
+                }
+            }
+            if (timeToDrop) {
+                this.startTime -= this.speed;
             }
         }
     }
     draw() {
-        Display.clear();
+        Display.drawState(this.play);
+        if (!this.play) {
+            Display.drawClock2();
+            return;
+        }
         this.current.draw();
         //this.next.draw();
         Display.clearNext();
-        Display.drawSymbol(this.next.type, new Point(0, 0), 1);
+        for (let y = 0; y < this.next.blocks.length; ++y) {
+            for (let x = 0; x < this.next.blocks[y].length; ++x) {
+                if (this.next.blocks[y][x] === 1) {
+                    Display.drawPixel(new Point(x, y), 1);
+                }
+            }
+        }
         Display.drawGlass(this.glass);
         Display.drawScore(this.score);
-        Display.drawState(this.play);
+        //Display.drawState(this.play);
     }
     start() {
         this.play = true;
+    }
+    hasCollisions() {
+        for (let y = 0; y < this.current.blocks.length; ++y) {
+            for (let x = 0; x < this.current.blocks[y].length; ++x) {
+                if (this.current.blocks[y][x] === 1) {
+                    if (this.current.position.x + x < 0) {
+                        return true;
+                    }
+                    if (this.current.position.x + x > Display.width - 1) {
+                        return true;
+                    }
+                    if (this.current.position.y + y > Display.height - 1) {
+                        return true;
+                    }
+                    if (this.glass[this.current.position.y + y][this.current.position.x + x] === 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
     nextPiece() {
         this.current = this.next;
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
     }
-    freezePiece(piece) {
-        const symbolMeta = symbols[this.current.type];
-        for (let y = 0; y < symbolMeta.length; ++y) {
-            for (let x = 0; x < symbolMeta[y].length; ++x) {
-                if (symbolMeta[y][x] === 1) {
-                    this.glass[piece.position.y + y][piece.position.x + x] = 1;
+    freezePiece() {
+        for (let y = 0; y < this.current.blocks.length; ++y) {
+            for (let x = 0; x < this.current.blocks[y].length; ++x) {
+                if (this.current.blocks[y][x] === 1) {
+                    this.glass[this.current.position.y + y][this.current.position.x + x] = 1;
                 }
             }
         }
@@ -539,8 +652,9 @@ class Game {
                 }
             }
         }
-        if (count > 0) {
-            this.score += count * 100;
-        }
+        return count;
+    }
+    addScore(lines) {
+        this.score += lines * 100 + getRandomInt(10, 20);
     }
 }

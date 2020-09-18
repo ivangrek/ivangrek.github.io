@@ -75,8 +75,8 @@ body {
 
 .cell::after {
     content: '';
-    width: calc(4 * var(--line-width));
-    height: calc(4 * var(--line-width));
+    width: calc(5 * var(--line-width));
+    height: calc(5 * var(--line-width));
     background: transparent;
     border: calc(var(--line-width)) solid white;
 }
