@@ -147,16 +147,18 @@ let $glassCells;
 let $nextCells;
 let $score;
 let $state;
+let $level;
 let $sound;
 document.addEventListener("DOMContentLoaded", function () {
     $glassCells = document.querySelectorAll(".glass .cell");
     $nextCells = document.querySelectorAll(".next .cell");
     $score = document.querySelector(".score .value");
     $state = document.querySelector(".state .value");
+    $level = document.querySelector(".state .level");
     $sound = document.getElementById("audio");
     Promise.all([
-        Display.drawСountdown(),
-        Display.drawPieces()
+    //Display.drawСountdown(),
+    //Display.drawPieces()
     ])
         .then(() => Application.run(new Game()));
 });
@@ -205,8 +207,9 @@ class Display {
     static drawScore(value) {
         $score.textContent = value.toString();
     }
-    static drawState(play) {
+    static drawState(play, level) {
         $state.textContent = play ? "Play" : "Over";
+        $level.textContent = level.toString();
     }
     //----
     static drawClock() {
@@ -519,11 +522,12 @@ class Piece {
 }
 class Game {
     constructor() {
-        this.startTime = 0;
+        this.canDrop = false;
         this.play = true;
-        this.speed = 1000;
-        this.current = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
-        this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
+        this.speed = 1200 - (getRandomInt(0, 20) + 1) * 50;
+        this.dropTimer = Application.timer("drop");
+        this.dropTimer.start(this.speed);
+        this.nextPiece();
         this.glass = new Array(Display.height)
             .fill(0)
             .map(() => new Array(Display.width).fill(0));
@@ -543,21 +547,45 @@ class Game {
                 this.current.rotate();
             }
         }
+        const moveTimer = Application.timer("move");
+        // Left
+        let moveLeft = false;
         if (Application.getButtonDown(Button.Left)) {
+            moveLeft = true;
+            moveTimer.start(100);
+        }
+        if (Application.getButton(Button.Left) && moveTimer.time) {
+            moveLeft = true;
+        }
+        if (moveLeft) {
             this.current.moveLeft();
             if (this.hasCollisions()) {
                 this.current.moveRight();
             }
         }
+        // Right
+        let moveRight = false;
         if (Application.getButtonDown(Button.Right)) {
+            moveRight = true;
+            moveTimer.start(100);
+        }
+        if (Application.getButton(Button.Right) && moveTimer.time) {
+            moveRight = true;
+        }
+        if (moveRight) {
             this.current.moveRight();
             if (this.hasCollisions()) {
                 this.current.moveLeft();
             }
         }
-        this.startTime += delta;
-        const timeToDrop = this.startTime > this.speed;
-        if (Application.getButton(Button.Down) || timeToDrop) {
+        // Drop
+        let drop = false;
+        const drop2Timer = Application.timer("drop2");
+        if (Application.getButtonDown(Button.Down)) {
+            this.canDrop = true;
+            drop2Timer.start(50);
+        }
+        if (Application.getButton(Button.Down) && drop2Timer.time || this.dropTimer.time) {
             this.current.moveDown();
             if (this.hasCollisions()) {
                 $sound.currentTime = 0;
@@ -570,14 +598,12 @@ class Game {
                 if (this.hasCollisions()) {
                     this.play = false;
                 }
-            }
-            if (timeToDrop) {
-                this.startTime -= this.speed;
+                drop2Timer.stop();
             }
         }
     }
     draw() {
-        Display.drawState(this.play);
+        Display.drawState(this.play, (1200 - this.speed) / 50 + 1);
         if (!this.play) {
             Display.drawClock2();
             return;
@@ -621,7 +647,7 @@ class Game {
         return false;
     }
     nextPiece() {
-        this.current = this.next;
+        this.current = this.next || new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
     }
     freezePiece() {
@@ -655,6 +681,6 @@ class Game {
         return count;
     }
     addScore(lines) {
-        this.score += lines * 100 + getRandomInt(10, 20);
+        this.score += lines * (lines + 1) * 50 + getRandomInt(0, 50) + 1;
     }
 }
