@@ -161,7 +161,6 @@ class Application {
             // this.components.forEach(component => {
             //     component.update(delta);
             // });
-            Display.clear();
             this.childs.forEach(child => {
                 child.update(delta);
                 child.draw();

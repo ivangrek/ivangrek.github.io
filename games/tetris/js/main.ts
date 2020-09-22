@@ -227,8 +227,20 @@ class Display {
         $score.textContent = value.toString();
     }
 
-    public static drawState(play: boolean, level: number) {
-        $state.textContent = play ? "Play" : "Over";
+    public static drawState(state: GameState, level: number) {
+        switch(state)
+        {
+            case GameState.Play:
+                $state.textContent = "Play";
+                break;
+            case GameState.Line:
+                $state.textContent = "Line";
+                break;
+            case GameState.Over:
+                $state.textContent = "Over";
+                break;
+        }
+
         $level.textContent = level.toString();
     }
 
@@ -578,7 +590,17 @@ class Piece {
     }
 }
 
+enum GameState {
+    Idle,
+    Play,
+    Line,
+    Level,
+    Over
+}
+
 class Game implements IGameObject {
+    private state: GameState;
+
     private play:  boolean;
     private speed: number;
     private current: Piece;
@@ -589,8 +611,179 @@ class Game implements IGameObject {
     private dropTimer;
 
     constructor() {
-        this.play = true;
-        this.speed = 1200 - (getRandomInt(0, 20) + 1) * 50;
+        this.start();
+    }
+
+    public update(delta: number) {
+        switch(this.state) {
+            case GameState.Line:
+                let lineTimer = Application.timer("line");
+
+                if(lineTimer.time) {
+                    this.removeNextBlockOnLines(this.lines);
+                }
+                break;
+            case GameState.Play:
+                this.current.update(delta);
+                this.next.update(delta);
+
+                if(Application.getButtonDown(Button.Up)) {
+                    this.current.rotate();
+
+                    if(this.hasCollisions()) {
+                        this.current.rotate();
+                        this.current.rotate();
+                        this.current.rotate();
+                    }
+                }
+
+                const moveTimer = Application.timer("move");
+
+                // Left
+                let moveLeft = false;
+
+                if(Application.getButtonDown(Button.Left)) {
+                    moveLeft = true;
+
+                    moveTimer.start(100);
+                }
+
+                if(Application.getButton(Button.Left) && moveTimer.time) {
+                    moveLeft = true;
+                }
+
+                if(moveLeft) {
+                    this.current.moveLeft();
+
+                    if(this.hasCollisions()) {
+                        this.current.moveRight();
+                    }
+                }
+
+                // Right
+                let moveRight = false;
+
+                if(Application.getButtonDown(Button.Right)) {
+                    moveRight = true;
+
+                    moveTimer.start(100);
+                }
+
+                if(Application.getButton(Button.Right) && moveTimer.time) {
+                    moveRight = true;
+                }
+
+                if(moveRight) {
+                    this.current.moveRight();
+
+                    if(this.hasCollisions()) {
+                        this.current.moveLeft();
+                    }
+                }
+
+                // Drop
+                const drop2Timer = Application.timer("drop2");
+
+                if(Application.getButtonDown(Button.Down)) {
+                    drop2Timer.start(50);
+                }
+
+                if(Application.getButton(Button.Down) && drop2Timer.time || this.dropTimer.time) {
+                    this.current.moveDown();
+
+                    if(this.hasCollisions()) {
+                        $sound.currentTime = 0;
+                        $sound.play();
+
+                        this.current.moveUp();
+                        this.freezePiece();
+
+                        //const lines = this.removeLines();
+
+                        this.lines = this.findLinesForRemove();
+
+                        if(this.lines.length > 0) {
+                            this.state = GameState.Line;
+
+                            let lineTimer = Application.timer("line");
+
+                            lineTimer.start(25);
+                        } else {
+                            this.addScore(0);
+                            this.nextPiece();
+
+                            if(this.hasCollisions()) {
+                                this.state = GameState.Over;
+                            }
+                        }
+
+                        // this.addScore(lines);
+
+                        // this.nextPiece();
+
+                        // if(this.hasCollisions()) {
+                        //     this.play = false;
+                        // }
+
+                        drop2Timer.stop();
+                    }
+                }
+                break;
+            case GameState.Over:
+                if(Application.getButtonDown(Button.Up)) {
+                    this.start();
+                }
+                break;
+        }
+    }
+
+    private lines: number[] = [];
+
+    public draw() {
+        switch(this.state) {
+            case GameState.Idle:
+                Display.clear();
+                Display.drawClock2();
+                break;
+            case GameState.Line:
+                Display.clear();
+                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
+                Display.drawGlass(this.glass);
+                Display.drawScore(this.score);
+                break;
+            case GameState.Play:
+                Display.clear();
+                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
+
+                this.current.draw();
+                //this.next.draw();
+
+                Display.clearNext();
+
+                for (let y = 0; y < this.next.blocks.length; ++y) {
+                    for (let x = 0; x < this.next.blocks[y].length; ++x) {
+                        if(this.next.blocks[y][x] === 1) {
+                            Display.drawPixel(new Point(x, y), 1);
+                        }
+                    }
+                }
+
+                Display.drawGlass(this.glass);
+
+                Display.drawScore(this.score);
+                //Display.drawState(this.play);
+                break;
+            case GameState.Over:
+                Display.clear();
+                Display.drawClock2();
+                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
+                break;
+        }
+    }
+
+    public start() {
+        this.state = GameState.Play;
+        this.speed = 1200 - (10) * 50;
 
         this.dropTimer = Application.timer("drop");
         this.dropTimer.start(this.speed);
@@ -602,136 +795,6 @@ class Game implements IGameObject {
             .map(() => new Array(Display.width).fill(0));
 
         this.score = 0;
-    }
-
-    public update(delta: number) {
-        this.current.update(delta);
-        this.next.update(delta);
-
-        if(!this.play) {
-            return;
-        }
-
-        if(Application.getButtonDown(Button.Up)) {
-            this.current.rotate();
-
-            if(this.hasCollisions()) {
-                this.current.rotate();
-                this.current.rotate();
-                this.current.rotate();
-            }
-        }
-
-        const moveTimer = Application.timer("move");
-
-        // Left
-        let moveLeft = false;
-
-        if(Application.getButtonDown(Button.Left)) {
-            moveLeft = true;
-
-            moveTimer.start(100);
-        }
-
-        if(Application.getButton(Button.Left) && moveTimer.time) {
-            moveLeft = true;
-        }
-
-        if(moveLeft) {
-            this.current.moveLeft();
-
-            if(this.hasCollisions()) {
-                this.current.moveRight();
-            }
-        }
-
-        // Right
-        let moveRight = false;
-
-        if(Application.getButtonDown(Button.Right)) {
-            moveRight = true;
-
-            moveTimer.start(100);
-        }
-
-        if(Application.getButton(Button.Right) && moveTimer.time) {
-            moveRight = true;
-        }
-
-        if(moveRight) {
-            this.current.moveRight();
-
-            if(this.hasCollisions()) {
-                this.current.moveLeft();
-            }
-        }
-
-        // Drop
-        let drop = false;
-        const drop2Timer = Application.timer("drop2");
-
-        if(Application.getButtonDown(Button.Down)) {
-            this.canDrop = true;
-
-            drop2Timer.start(50);
-        }
-
-        if(Application.getButton(Button.Down) && drop2Timer.time || this.dropTimer.time) {
-            this.current.moveDown();
-
-            if(this.hasCollisions()) {
-                $sound.currentTime = 0;
-                $sound.play();
-
-                this.current.moveUp();
-                this.freezePiece();
-
-                const lines = this.removeLines();
-
-                this.addScore(lines);
-
-                this.nextPiece();
-
-                if(this.hasCollisions()) {
-                    this.play = false;
-                }
-
-                drop2Timer.stop();
-            }
-        }
-    }
-
-    public canDrop: boolean = false;
-
-    public draw() {
-        Display.drawState(this.play, (1200 - this.speed) / 50 + 1);
-
-        if(!this.play) {
-            Display.drawClock2();
-            return;
-        }
-
-        this.current.draw();
-        //this.next.draw();
-
-        Display.clearNext();
-
-        for (let y = 0; y < this.next.blocks.length; ++y) {
-            for (let x = 0; x < this.next.blocks[y].length; ++x) {
-                if(this.next.blocks[y][x] === 1) {
-                    Display.drawPixel(new Point(x, y), 1);
-                }
-            }
-        }
-
-        Display.drawGlass(this.glass);
-
-        Display.drawScore(this.score);
-        //Display.drawState(this.play);
-    }
-
-    public start() {
-        this.play = true;
     }
 
     private hasCollisions(): boolean {
@@ -801,6 +864,65 @@ class Game implements IGameObject {
         }
 
         return count;
+    }
+
+    private findLinesForRemove(): number[] {
+        let lines: number[] = [];
+
+        for (let y = 0; y < Display.height; ++y) {
+            let line = true;
+
+            for (let x = 0; x < Display.width; ++x) {
+                line = line && this.glass[y][x] === 1;
+            }
+
+            if(line) {
+                lines.push(y);
+            }
+        }
+
+        return lines;
+    }
+
+    private removeNextBlockOnLines(lines: number[]) {
+        let stop = true;
+
+        lines.forEach(y => {
+            for (let x = 0; x < Display.width; ++x) {
+                if(this.glass[y][x] === 1) {
+                    this.glass[y][x] = 0;
+
+                    stop = false;
+                    break;
+                }
+            }
+        });
+
+        if(stop) {
+            this.collapseRemovedLines(lines);
+
+            this.state = GameState.Play;
+            this.addScore(lines.length);
+            this.nextPiece();
+
+            if(this.hasCollisions()) {
+                this.state = GameState.Over;
+            }
+        }
+    }
+
+    private collapseRemovedLines(lines: number[]) {
+        lines.forEach(y => {
+            for (let yy = y; yy > 0; --yy) {
+                for (let xx = 0; xx < Display.width; ++xx) {
+                    this.glass[yy][xx] = this.glass[yy - 1][xx]
+                }
+            }
+
+            for (let xx = 0; xx < Display.width; ++xx) {
+                this.glass[0][xx] = 0
+            }
+        });
     }
 
     private addScore(lines: number) {

@@ -212,8 +212,6 @@ class Application {
             //     component.update(delta);
             // });
 
-            Display.clear();
-
             this.childs.forEach(child => {
                 child.update(delta);
                 child.draw();
