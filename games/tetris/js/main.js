@@ -75,59 +75,17 @@ var symbols = {
         [0, 0, 0],
         [0, 0, 0],
         [0, 0, 0]
-    ],
-    "I": [
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 1, 0, 0]
-    ],
-    "L": [
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0]
-    ],
-    "J": [
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [1, 1, 0, 0],
-        [0, 0, 0, 0]
-    ],
-    "S": [
-        [0, 1, 1, 0],
-        [1, 1, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
-    ],
-    "Z": [
-        [1, 1, 0, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
-    ],
-    "O": [
-        [0, 0, 0, 0],
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0]
-    ],
-    "T": [
-        [0, 1, 0, 0],
-        [1, 1, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0]
     ]
 };
 var PieceType;
 (function (PieceType) {
-    PieceType["I"] = "I";
-    PieceType["L"] = "L";
-    PieceType["J"] = "J";
-    PieceType["S"] = "S";
-    PieceType["Z"] = "Z";
-    PieceType["O"] = "O";
-    PieceType["T"] = "T";
+    PieceType[PieceType["I"] = 0] = "I";
+    PieceType[PieceType["L"] = 1] = "L";
+    PieceType[PieceType["J"] = 2] = "J";
+    PieceType[PieceType["S"] = 3] = "S";
+    PieceType[PieceType["Z"] = 4] = "Z";
+    PieceType[PieceType["O"] = 5] = "O";
+    PieceType[PieceType["T"] = 6] = "T";
 })(PieceType || (PieceType = {}));
 var pieceTypes = new Map([
     [0, PieceType.I],
@@ -157,8 +115,8 @@ document.addEventListener("DOMContentLoaded", function () {
     $level = document.querySelector(".state .level");
     $sound = document.getElementById("audio");
     Promise.all([
-    //Display.drawСountdown(),
-    //Display.drawPieces()
+    // Display.drawСountdown(),
+    // Display.drawPieces()
     ])
         .then(() => Application.run(new Game()));
 });
@@ -209,11 +167,14 @@ class Display {
     }
     static drawState(state, level) {
         switch (state) {
+            case GameState.Idle:
+                $state.textContent = "Time";
+                break;
             case GameState.Play:
                 $state.textContent = "Play";
                 break;
-            case GameState.Line:
-                $state.textContent = "Line";
+            case GameState.LinesCleaning:
+                $state.textContent = "Clearing";
                 break;
             case GameState.Over:
                 $state.textContent = "Over";
@@ -222,26 +183,6 @@ class Display {
         $level.textContent = level.toString();
     }
     //----
-    static drawClock() {
-        let dots = true;
-        return new Promise((resolve, reject) => {
-            const process = setInterval(function () {
-                Display.clear();
-                Display.drawTime();
-                if (dots) {
-                    this.drawDots();
-                }
-                dots = !dots;
-            }, 500);
-        });
-    }
-    static drawClock2() {
-        Display.drawTime();
-        const now = new Date();
-        if (Math.floor(now.getMilliseconds() / 500) === 1) {
-            this.drawDots();
-        }
-    }
     static drawСountdown() {
         let counter = 9;
         return new Promise((resolve, reject) => {
@@ -262,7 +203,15 @@ class Display {
         return new Promise((resolve, reject) => {
             const process = setInterval(function () {
                 Display.clearNext();
-                Display.drawSymbol(pieceTypes.get(counter), new Point(0, 0), 1);
+                const type = pieceTypes.get(counter);
+                const piece = new Piece(type, new Point(0, 0));
+                for (let y = 0; y < piece.blocks.length; ++y) {
+                    for (let x = 0; x < piece.blocks[y].length; ++x) {
+                        if (piece.blocks[y][x] === 1) {
+                            Display.drawPixel(new Point(piece.position.x + x, piece.position.y + y), 1);
+                        }
+                    }
+                }
                 if (counter === 0) {
                     clearInterval(process);
                     resolve();
@@ -270,23 +219,6 @@ class Display {
                 --counter;
             }, 300);
         });
-    }
-    static drawDots() {
-        Display.drawSymbol(".", new Point(2, 9), 0);
-        Display.drawSymbol(".", new Point(6, 9), 0);
-    }
-    static drawTime() {
-        const now = new Date();
-        const time = {
-            hours: (now.getHours() < 10 ? "0" : "") + now.getHours(),
-            minutes: (now.getMinutes() < 10 ? "0" : "") + now.getMinutes()
-        };
-        const hoursDigits = time.hours.split("");
-        const minutesDigits = time.minutes.split("");
-        Display.drawSymbol(hoursDigits[0], new Point(1, 2), 0);
-        Display.drawSymbol(hoursDigits[1], new Point(6, 2), 0);
-        Display.drawSymbol(minutesDigits[0], new Point(1, 13), 0);
-        Display.drawSymbol(minutesDigits[1], new Point(6, 13), 0);
     }
 }
 Display.width = 10;
@@ -533,23 +465,102 @@ class Piece {
 var GameState;
 (function (GameState) {
     GameState[GameState["Idle"] = 0] = "Idle";
-    GameState[GameState["Play"] = 1] = "Play";
-    GameState[GameState["Line"] = 2] = "Line";
-    GameState[GameState["Level"] = 3] = "Level";
-    GameState[GameState["Over"] = 4] = "Over";
+    GameState[GameState["ScreenCleaning"] = 1] = "ScreenCleaning";
+    GameState[GameState["Play"] = 2] = "Play";
+    GameState[GameState["LinesCleaning"] = 3] = "LinesCleaning";
+    GameState[GameState["Level"] = 4] = "Level";
+    GameState[GameState["Over"] = 5] = "Over";
 })(GameState || (GameState = {}));
+class Clock extends Component {
+    constructor(gameObject) {
+        super(gameObject);
+        this.gameObject = gameObject;
+        this.timer = Application.timer("clock");
+        this.showDots = false;
+        this.update = (delta) => {
+            if (this.timer.time) {
+                this.gameObject.glass = new Array(Display.height)
+                    .fill(0)
+                    .map(() => new Array(Display.width).fill(0));
+                this.addTime();
+                if (this.showDots = !this.showDots) {
+                    this.addDots();
+                }
+            }
+        };
+        this.timer.start(500);
+    }
+    addSymbol(symbol, start) {
+        const symbolMeta = symbols[symbol];
+        for (let y = 0; y < symbolMeta.length; ++y) {
+            for (let x = 0; x < symbolMeta[y].length; ++x) {
+                if (symbolMeta[y][x] === 1) {
+                    this.gameObject.glass[y + start.y][x + start.x] = 1;
+                }
+            }
+        }
+    }
+    addTime() {
+        const now = new Date();
+        const hours = (now.getHours() < 10 ? "0" : "") + now.getHours();
+        const minutes = (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
+        const hoursDigits = hours.split("");
+        const minutesDigits = minutes.split("");
+        this.addSymbol(hoursDigits[0], new Point(1, 2));
+        this.addSymbol(hoursDigits[1], new Point(6, 2));
+        this.addSymbol(minutesDigits[0], new Point(1, 13));
+        this.addSymbol(minutesDigits[1], new Point(6, 13));
+    }
+    addDots() {
+        this.addSymbol(".", new Point(2, 9));
+        this.addSymbol(".", new Point(6, 9));
+    }
+}
+class Cleaner extends Component {
+    constructor(gameObject) {
+        super(gameObject);
+        this.gameObject = gameObject;
+        this.line = 0;
+        this.timer = Application.timer("cleaner");
+        this.update = (delta) => {
+            if (this.timer.time) {
+                for (let x = 0; x < Display.width; ++x) {
+                    this.gameObject.glass[Math.abs(this.line - Display.height + 1) - Math.floor(this.line / Display.height)][x] = 1 - Math.floor(this.line / Display.height);
+                }
+                ++this.line;
+                if (this.line === Display.height * 2) {
+                    this.line = 0;
+                    this.enable = false;
+                    this.gameObject.setState(this.nextGameState);
+                }
+            }
+        };
+        this.timer.start(25);
+    }
+}
 class Game {
     constructor() {
-        this.lines = [];
-        this.start();
+        this.completeLines = [];
+        this.components = [];
+        this.state = GameState.Idle;
+        this.glass = new Array(Display.height)
+            .fill(0)
+            .map(() => new Array(Display.width).fill(0));
+        this.cleaner = new Cleaner(this);
+        this.cleaner.enable = false;
+        this.clock = new Clock(this);
+        this.clock.enable = true;
+        this.components.push(this.cleaner);
+        this.components.push(this.clock);
     }
     update(delta) {
         switch (this.state) {
-            case GameState.Line:
-                let lineTimer = Application.timer("line");
-                if (lineTimer.time) {
-                    this.removeNextBlockOnLines(this.lines);
+            case GameState.Idle:
+                if (Application.getButtonDown(Button.Up)) {
+                    this.setState(GameState.ScreenCleaning);
                 }
+                break;
+            case GameState.ScreenCleaning:
                 break;
             case GameState.Play:
                 this.current.update(delta);
@@ -594,44 +605,51 @@ class Game {
                     }
                 }
                 // Drop
-                const drop2Timer = Application.timer("drop2");
+                const fallTimer = Application.timer("fall");
+                const quickFallTimer = Application.timer("quickFall");
                 if (Application.getButtonDown(Button.Down)) {
-                    drop2Timer.start(50);
+                    quickFallTimer.start(50);
                 }
-                if (Application.getButton(Button.Down) && drop2Timer.time || this.dropTimer.time) {
+                if (fallTimer.time || Application.getButton(Button.Down) && quickFallTimer.time) {
                     this.current.moveDown();
                     if (this.hasCollisions()) {
                         $sound.currentTime = 0;
                         $sound.play();
                         this.current.moveUp();
-                        this.freezePiece();
-                        //const lines = this.removeLines();
-                        this.lines = this.findLinesForRemove();
-                        if (this.lines.length > 0) {
-                            this.state = GameState.Line;
-                            let lineTimer = Application.timer("line");
-                            lineTimer.start(25);
+                        this.appendPiece();
+                        this.completeLines = this.findCompleteLines();
+                        if (this.completeLines.length > 0) {
+                            this.setState(GameState.LinesCleaning);
                         }
                         else {
-                            this.addScore(0);
+                            this.addScore();
                             this.nextPiece();
                             if (this.hasCollisions()) {
-                                this.state = GameState.Over;
+                                this.setState(GameState.ScreenCleaning);
                             }
                         }
-                        // this.addScore(lines);
-                        // this.nextPiece();
-                        // if(this.hasCollisions()) {
-                        //     this.play = false;
-                        // }
-                        drop2Timer.stop();
+                    }
+                }
+                break;
+            case GameState.LinesCleaning:
+                let lineTimer = Application.timer("line");
+                if (lineTimer.time) {
+                    const stop = this.removeNextBlockOnLines(this.completeLines);
+                    if (stop) {
+                        this.collapseRemovedLines(this.completeLines);
+                        this.addScore();
+                        this.nextPiece();
+                        if (this.hasCollisions()) {
+                            this.setState(GameState.Over);
+                        }
+                        else {
+                            this.setState(GameState.Play);
+                        }
                     }
                 }
                 break;
             case GameState.Over:
-                if (Application.getButtonDown(Button.Up)) {
-                    this.start();
-                }
+                this.setState(GameState.Idle);
                 break;
         }
     }
@@ -639,13 +657,11 @@ class Game {
         switch (this.state) {
             case GameState.Idle:
                 Display.clear();
-                Display.drawClock2();
-                break;
-            case GameState.Line:
-                Display.clear();
-                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
                 Display.drawGlass(this.glass);
-                Display.drawScore(this.score);
+                break;
+            case GameState.ScreenCleaning:
+                Display.clear();
+                Display.drawGlass(this.glass);
                 break;
             case GameState.Play:
                 Display.clear();
@@ -664,23 +680,71 @@ class Game {
                 Display.drawScore(this.score);
                 //Display.drawState(this.play);
                 break;
+            case GameState.LinesCleaning:
+                Display.clear();
+                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
+                Display.drawGlass(this.glass);
+                Display.drawScore(this.score);
+                break;
             case GameState.Over:
                 Display.clear();
-                Display.drawClock2();
+                Display.drawGlass(this.glass);
                 Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
                 break;
         }
     }
+    setState(state) {
+        switch (this.state) {
+            case GameState.Idle:
+                switch (state) {
+                    case GameState.ScreenCleaning:
+                        this.clock.enable = false;
+                        this.cleaner.enable = true;
+                        this.cleaner.nextGameState = GameState.Play;
+                        break;
+                }
+                break;
+            case GameState.ScreenCleaning:
+                switch (state) {
+                    case GameState.Play:
+                        this.start();
+                        break;
+                    case GameState.Over:
+                        this.clock.enable = true;
+                        break;
+                }
+                break;
+            case GameState.Play:
+                switch (state) {
+                    case GameState.ScreenCleaning:
+                        this.cleaner.enable = true;
+                        this.cleaner.nextGameState = GameState.Over;
+                        break;
+                    case GameState.LinesCleaning:
+                        let lineTimer = Application.timer("line");
+                        lineTimer.start(20);
+                        break;
+                }
+                break;
+            case GameState.Over:
+                switch (state) {
+                    case GameState.Idle:
+                        this.clock.enable = true;
+                        break;
+                }
+                break;
+        }
+        this.state = state;
+    }
     start() {
-        this.state = GameState.Play;
         this.speed = 1200 - (10) * 50;
-        this.dropTimer = Application.timer("drop");
-        this.dropTimer.start(this.speed);
         this.nextPiece();
         this.glass = new Array(Display.height)
             .fill(0)
             .map(() => new Array(Display.width).fill(0));
         this.score = 0;
+        const fallTimer = Application.timer("fall");
+        fallTimer.start(this.speed);
     }
     hasCollisions() {
         for (let y = 0; y < this.current.blocks.length; ++y) {
@@ -707,7 +771,7 @@ class Game {
         this.current = this.next || new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
         this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
     }
-    freezePiece() {
+    appendPiece() {
         for (let y = 0; y < this.current.blocks.length; ++y) {
             for (let x = 0; x < this.current.blocks[y].length; ++x) {
                 if (this.current.blocks[y][x] === 1) {
@@ -716,35 +780,17 @@ class Game {
             }
         }
     }
-    removeLines() {
-        let count = 0;
-        for (let y = 0; y < Display.height; ++y) {
-            let line = true;
-            for (let x = 0; x < Display.width; ++x) {
-                line = line && this.glass[y][x] === 1;
-            }
-            if (line) {
-                ++count;
-                for (let yy = y; yy > 0; --yy) {
-                    for (let xx = 0; xx < Display.width; ++xx) {
-                        this.glass[yy][xx] = this.glass[yy - 1][xx];
-                    }
-                }
-                for (let xx = 0; xx < Display.width; ++xx) {
-                    this.glass[0][xx] = 0;
-                }
-            }
-        }
-        return count;
-    }
-    findLinesForRemove() {
+    findCompleteLines() {
         let lines = [];
         for (let y = 0; y < Display.height; ++y) {
-            let line = true;
+            let complete = true;
             for (let x = 0; x < Display.width; ++x) {
-                line = line && this.glass[y][x] === 1;
+                if (this.glass[y][x] === 0) {
+                    complete = false;
+                    break;
+                }
             }
-            if (line) {
+            if (complete) {
                 lines.push(y);
             }
         }
@@ -761,15 +807,7 @@ class Game {
                 }
             }
         });
-        if (stop) {
-            this.collapseRemovedLines(lines);
-            this.state = GameState.Play;
-            this.addScore(lines.length);
-            this.nextPiece();
-            if (this.hasCollisions()) {
-                this.state = GameState.Over;
-            }
-        }
+        return stop;
     }
     collapseRemovedLines(lines) {
         lines.forEach(y => {
@@ -783,7 +821,7 @@ class Game {
             }
         });
     }
-    addScore(lines) {
-        this.score += lines * (lines + 1) * 50 + getRandomInt(0, 50) + 1;
+    addScore() {
+        this.score += this.completeLines.length * (this.completeLines.length + 1) * 50 + getRandomInt(0, 50) + 1;
     }
 }

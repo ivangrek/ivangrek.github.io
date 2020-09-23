@@ -13,7 +13,17 @@ interface IDrawable {
     draw: () => void;
 }
 
+abstract class Component<T extends IGameObject> implements IUpdateable {
+    constructor(gameObject: T) {
+    }
+
+    public enable: boolean;
+
+    public update: (delta: number) => void;
+}
+
 interface IGameObject extends IUpdateable, IDrawable  {
+    components: Component<IGameObject>[];
 }
 
 class Input implements IUpdateable {
@@ -214,6 +224,13 @@ class Application {
 
             this.childs.forEach(child => {
                 child.update(delta);
+
+                child.components.forEach(component => {
+                    if(component.enable) {
+                        component.update(delta);
+                    }
+                });
+
                 child.draw();
             });
 

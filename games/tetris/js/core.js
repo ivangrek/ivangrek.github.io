@@ -5,6 +5,10 @@ var Button;
     Button[Button["Left"] = 2] = "Left";
     Button[Button["Right"] = 3] = "Right";
 })(Button || (Button = {}));
+class Component {
+    constructor(gameObject) {
+    }
+}
 class Input {
     constructor() {
         this.holdedButtons = new Map([
@@ -163,6 +167,11 @@ class Application {
             // });
             this.childs.forEach(child => {
                 child.update(delta);
+                child.components.forEach(component => {
+                    if (component.enable) {
+                        component.update(delta);
+                    }
+                });
                 child.draw();
             });
             this.components.forEach(component => {
