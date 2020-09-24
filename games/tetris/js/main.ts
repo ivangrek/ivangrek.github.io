@@ -1,3 +1,27 @@
+let $glassCells:NodeListOf<Element>;
+let $nextCells:NodeListOf<Element>;
+
+let $score: Element;
+let $level: Element;
+let $lines: Element;
+
+let $state: Element;
+let $sound: HTMLAudioElement;
+
+document.addEventListener("DOMContentLoaded", function() {
+    $glassCells = document.querySelectorAll(".glass .cell");
+    $nextCells = document.querySelectorAll(".next .cell");
+
+    $score = document.querySelector(".score .value");
+    $level = document.querySelector(".level .value");
+    $lines = document.querySelector(".lines .value");
+
+    $state = document.querySelector(".state .value");
+    $sound = <HTMLAudioElement>document.getElementById("audio");
+
+    Application.run(new Game());
+});
+
 var symbols = {
     "0": [
         [1 , 1 , 1],
@@ -103,155 +127,6 @@ function getRandomInt(min, max) {
     max = Math.floor(max);
 
     return Math.floor(Math.random() * (max - min) + min); // [min, max)
-  }
-
-let $glassCells:NodeListOf<Element>;
-let $nextCells:NodeListOf<Element>;
-let $score: Element;
-let $state: Element;
-let $level: Element;
-let $sound: HTMLAudioElement ;
-
-document.addEventListener("DOMContentLoaded", function() {
-    $glassCells = document.querySelectorAll(".glass .cell");
-    $nextCells = document.querySelectorAll(".next .cell");
-    $score = document.querySelector(".score .value");
-    $state = document.querySelector(".state .value");
-    $level = document.querySelector(".state .level");
-    $sound = <HTMLAudioElement>document.getElementById("audio");
-
-    Promise.all([
-        // Display.drawСountdown(),
-        // Display.drawPieces()
-    ])
-        .then(() => Application.run(new Game()));
-});
-
-class Display {
-    public static width: number = 10;
-    public static height: number = 20;
-
-    public static clear() {
-        $glassCells.forEach(cell => {
-            cell.classList.remove("active");
-        });
-    }
-
-    public static clearNext() {
-        $nextCells.forEach(cell => {
-            cell.classList.remove("active");
-        });
-    }
-
-    public static drawPixel(point: Point, display: number) {
-        let cells = $glassCells;
-        let size = 10;
-
-        if(display === 1) {
-            cells = $nextCells;
-            size = 4;
-        }
-
-        const cell = cells[point.x + (point.y) * size];
-
-        if(cell) {
-            cell.classList.add("active");
-        }
-    }
-
-    public static drawSymbol(symbol: string, start: Point, display: number) {
-        const symbolMeta = symbols[symbol];
-
-        for (let y = 0; y < symbolMeta.length; ++y) {
-            for (let x = 0; x < symbolMeta[y].length; ++x) {
-                if(symbolMeta[y][x] === 1) {
-                    Display.drawPixel(new Point(x + start.x, y + start.y), display);
-                }
-            }
-        }
-    }
-
-    public static drawGlass(glass: number[][]) {
-        for (let y = 0; y < glass.length; ++y) {
-            for (let x = 0; x < glass[y].length; ++x) {
-                if(glass[y][x] === 1) {
-                    Display.drawPixel(new Point(x, y), 0);
-                }
-            }
-        }
-    }
-
-    public static drawScore(value: number) {
-        $score.textContent = value.toString();
-    }
-
-    public static drawState(state: GameState, level: number) {
-        switch(state)
-        {
-            case GameState.Idle:
-                $state.textContent = "Time";
-                break;
-            case GameState.Play:
-                $state.textContent = "Play";
-                break;
-            case GameState.LinesCleaning:
-                $state.textContent = "Clearing";
-                break;
-            case GameState.Over:
-                $state.textContent = "Over";
-                break;
-        }
-
-        $level.textContent = level.toString();
-    }
-
-    //----
-    public static drawСountdown(): Promise<any> {
-        let counter = 9;
-
-        return new Promise((resolve, reject) => {
-            const process = setInterval(function() {
-                Display.clear();
-                Display.drawSymbol("0", new Point(1 , 5), 0);
-                Display.drawSymbol(counter.toString(), new Point(6 , 5), 0);
-
-                if(counter === 0) {
-                    clearInterval(process);
-                    resolve();
-                }
-
-                --counter;
-            }, 300);
-        });
-    }
-
-    public static drawPieces(): Promise<any> {
-        let counter = 6;
-
-        return new Promise((resolve, reject) => {
-            const process = setInterval(function() {
-                Display.clearNext();
-
-                const type = pieceTypes.get(counter);
-                const piece = new Piece(type, new Point(0 , 0))
-
-                for (let y = 0; y < piece.blocks.length; ++y) {
-                    for (let x = 0; x < piece.blocks[y].length; ++x) {
-                        if(piece.blocks[y][x] === 1) {
-                            Display.drawPixel(new Point(piece.position.x + x, piece.position.y + y), 1);
-                        }
-                    }
-                }
-
-                if(counter === 0) {
-                    clearInterval(process);
-                    resolve();
-                }
-
-                --counter;
-            }, 300);
-        });
-    }
 }
 
 class Point {
@@ -269,10 +144,10 @@ class Piece {
         [
             PieceType.I, [
                 [
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0]
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0]
                 ],
                 [
                     [0, 0, 0, 0],
@@ -281,10 +156,10 @@ class Piece {
                     [0, 0, 0, 0]
                 ],
                 [
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0]
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0]
                 ],
                 [
                     [0, 0, 0, 0],
@@ -292,7 +167,7 @@ class Piece {
                     [0, 0, 0, 0],
                     [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
         [
             PieceType.L, [
@@ -320,35 +195,35 @@ class Piece {
                     [0, 0, 0, 0],
                     [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
         [
             PieceType.J, [
                 [
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
-                    [1, 1, 0, 0],
-                    [0, 0, 0, 0]
-                ],
-                [
-                    [1, 0, 0, 0],
-                    [1, 1, 1, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0]
-                ],
-                [
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 0],
                     [0, 1, 1, 0],
-                    [0, 1, 0, 0],
-                    [0, 1, 0, 0],
                     [0, 0, 0, 0]
                 ],
                 [
+                    [0, 1, 0, 0],
+                    [0, 1, 1, 1],
                     [0, 0, 0, 0],
-                    [1, 1, 1, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 1, 1],
+                    [0, 0, 1, 0],
                     [0, 0, 1, 0],
                     [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 1, 1],
+                    [0, 0, 0, 1],
+                    [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
         [
             PieceType.S, [
@@ -359,15 +234,15 @@ class Piece {
                     [0, 0, 0, 0]
                 ],
                 [
-                    [1, 0, 0, 0],
-                    [1, 1, 0, 0],
                     [0, 1, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 1, 0],
                     [0, 0, 0, 0]
                 ],
                 [
+                    [0, 0, 0, 0],
                     [0, 1, 1, 0],
                     [1, 1, 0, 0],
-                    [0, 0, 0, 0],
                     [0, 0, 0, 0]
                 ],
                 [
@@ -376,26 +251,26 @@ class Piece {
                     [0, 0, 1, 0],
                     [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
         [
             PieceType.Z, [
                 [
                     [0, 0, 0, 0],
-                    [1, 1, 0, 0],
                     [0, 1, 1, 0],
+                    [0, 0, 1, 1],
                     [0, 0, 0, 0]
                 ],
                 [
+                    [0, 0, 1, 0],
+                    [0, 1, 1, 0],
                     [0, 1, 0, 0],
-                    [1, 1, 0, 0],
-                    [1, 0, 0, 0],
                     [0, 0, 0, 0]
                 ],
                 [
-                    [1, 1, 0, 0],
-                    [0, 1, 1, 0],
                     [0, 0, 0, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 1, 1],
                     [0, 0, 0, 0]
                 ],
                 [
@@ -404,7 +279,7 @@ class Piece {
                     [0, 1, 0, 0],
                     [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
         [
             PieceType.O, [
@@ -432,35 +307,35 @@ class Piece {
                     [0, 1, 1, 0],
                     [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
         [
             PieceType.T, [
                 [
                     [0, 0, 0, 0],
-                    [1, 1, 1, 0],
-                    [0, 1, 0, 0],
+                    [0, 1, 1, 1],
+                    [0, 0, 1, 0],
                     [0, 0, 0, 0]
                 ],
                 [
-                    [0, 1, 0, 0],
-                    [1, 1, 0, 0],
-                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 1, 1, 0],
+                    [0, 0, 1, 0],
                     [0, 0, 0, 0]
                 ],
                 [
-                    [0, 1, 0, 0],
-                    [1, 1, 1, 0],
+                    [0, 0, 1, 0],
+                    [0, 1, 1, 1],
                     [0, 0, 0, 0],
                     [0, 0, 0, 0]
                 ],
                 [
-                    [0, 1, 0, 0],
-                    [0, 1, 1, 0],
-                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 1, 1],
+                    [0, 0, 1, 0],
                     [0, 0, 0, 0]
                 ]
-            ],
+            ]
         ],
     ]);
 
@@ -611,16 +486,15 @@ class Cleaner extends Component<Game> {
 class Game implements IGameObject {
     private state: GameState;
 
-    private speed: number;
-
     private current: Piece;
     private next: Piece;
 
-    //private glass: number[][];
     public glass: number[][];
     private completeLines: number[] = [];
 
     private score: number;
+    private level: number;
+    private lines: number;
 
     public components: Component<IGameObject>[] = [];
     private cleaner: Cleaner;
@@ -710,7 +584,7 @@ class Game implements IGameObject {
                     }
                 }
 
-                // Drop
+                // Fall
                 const fallTimer = Application.timer("fall");
                 const quickFallTimer = Application.timer("quickFall");
 
@@ -733,12 +607,7 @@ class Game implements IGameObject {
                         if(this.completeLines.length > 0) {
                             this.setState(GameState.LinesCleaning);
                         } else {
-                            this.addScore();
-                            this.nextPiece();
-
-                            if(this.hasCollisions()) {
-                                this.setState(GameState.ScreenCleaning);
-                            }
+                            this.setState(GameState.Play);
                         }
                     }
                 }
@@ -752,14 +621,7 @@ class Game implements IGameObject {
                     if(stop) {
                         this.collapseRemovedLines(this.completeLines);
 
-                        this.addScore();
-                        this.nextPiece();
-
-                        if(this.hasCollisions()) {
-                            this.setState(GameState.Over);
-                        } else {
-                            this.setState(GameState.Play);
-                        }
+                        this.setState(GameState.Play);
                     }
                 }
 
@@ -779,11 +641,12 @@ class Game implements IGameObject {
                 break;
             case GameState.ScreenCleaning:
                 Display.clear();
+                Display.clearNext();
                 Display.drawGlass(this.glass);
+                Display.drawInfo(this.score, this.level, this.lines, this.state);
                 break;
             case GameState.Play:
                 Display.clear();
-                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
 
                 this.current.draw();
                 //this.next.draw();
@@ -799,20 +662,19 @@ class Game implements IGameObject {
                 }
 
                 Display.drawGlass(this.glass);
+                Display.drawInfo(this.score, this.level, this.lines, this.state);
 
-                Display.drawScore(this.score);
-                //Display.drawState(this.play);
                 break;
             case GameState.LinesCleaning:
                 Display.clear();
-                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
                 Display.drawGlass(this.glass);
-                Display.drawScore(this.score);
+                Display.drawInfo(this.score, this.level, this.lines, this.state);
+
                 break;
             case GameState.Over:
                 Display.clear();
                 Display.drawGlass(this.glass);
-                Display.drawState(this.state, (1200 - this.speed) / 50 + 1);
+                Display.drawInfo(this.score, this.level, this.lines, this.state);
                 break;
         }
     }
@@ -824,9 +686,13 @@ class Game implements IGameObject {
                 switch(state)
                 {
                     case GameState.ScreenCleaning:
+                        this.state = state;
+
                         this.clock.enable = false;
                         this.cleaner.enable = true;
                         this.cleaner.nextGameState = GameState.Play;
+
+                        this.reset();
 
                         break;
                 }
@@ -836,11 +702,13 @@ class Game implements IGameObject {
                 switch(state)
                 {
                     case GameState.Play:
-                        this.start();
+                        this.state = state;
+
+                        this.newRound();
 
                         break;
                     case GameState.Over:
-                        this.clock.enable = true;
+                        this.state = state;
 
                         break;
                 }
@@ -849,15 +717,40 @@ class Game implements IGameObject {
             case GameState.Play:
                 switch(state)
                 {
+                    case GameState.Play:
+                        this.state = state;
+
+                        this.calculateScores();
+                        this.newRound();
+
+                        break;
+
                     case GameState.ScreenCleaning:
+                        this.state = state;
+
                         this.cleaner.enable = true;
                         this.cleaner.nextGameState = GameState.Over;
 
                         break;
                     case GameState.LinesCleaning:
-                        let lineTimer = Application.timer("line");
+                        this.state = state;
+
+                        const lineTimer = Application.timer("line");
 
                         lineTimer.start(20);
+
+                        break;
+                }
+
+                break;
+            case GameState.LinesCleaning:
+                switch(state)
+                {
+                    case GameState.Play:
+                        this.state = state;
+
+                        this.calculateScores();
+                        this.newRound();
 
                         break;
                 }
@@ -867,6 +760,8 @@ class Game implements IGameObject {
                 switch(state)
                 {
                     case GameState.Idle:
+                        this.state = state;
+
                         this.clock.enable = true;
 
                         break;
@@ -874,24 +769,38 @@ class Game implements IGameObject {
 
                 break;
         }
-
-        this.state = state;
     }
 
-    private start() {
-        this.speed = 1200 - (10) * 50;
-
-        this.nextPiece();
-
+    private reset() {
         this.glass = new Array(Display.height)
             .fill(0)
             .map(() => new Array(Display.width).fill(0));
 
         this.score = 0;
+        this.level = 0;
+        this.lines = 0;
+    }
 
+    private calculateScores() {
+        this.score += this.completeLines.length * (this.completeLines.length + 1) * 50 + getRandomInt(0, 50) + 1;
+        this.lines += this.completeLines.length;
+        this.level =  Math.floor(this.lines / 20);
+    }
+
+    private newRound() {
         const fallTimer = Application.timer("fall");
 
-        fallTimer.start(this.speed);
+        fallTimer.start(1000 / (this.level + 1));
+
+        const quickFallTimer = Application.timer("quickFall");
+
+        quickFallTimer.stop();
+
+        this.nextPiece();
+
+        if(this.hasCollisions()) {
+            this.setState(GameState.ScreenCleaning);
+        }
     }
 
     private hasCollisions(): boolean {
@@ -986,8 +895,132 @@ class Game implements IGameObject {
             }
         });
     }
+}
 
-    private addScore() {
-        this.score += this.completeLines.length * (this.completeLines.length + 1) * 50 + getRandomInt(0, 50) + 1;
+class Display {
+    public static width: number = 10;
+    public static height: number = 20;
+
+    public static clear() {
+        $glassCells.forEach(cell => {
+            cell.classList.remove("active");
+        });
+    }
+
+    public static clearNext() {
+        $nextCells.forEach(cell => {
+            cell.classList.remove("active");
+        });
+    }
+
+    public static drawPixel(point: Point, display: number) {
+        let cells = $glassCells;
+        let size = 10;
+
+        if(display === 1) {
+            cells = $nextCells;
+            size = 4;
+        }
+
+        const cell = cells[point.x + (point.y) * size];
+
+        if(cell) {
+            cell.classList.add("active");
+        }
+    }
+
+    public static drawSymbol(symbol: string, start: Point, display: number) {
+        const symbolMeta = symbols[symbol];
+
+        for (let y = 0; y < symbolMeta.length; ++y) {
+            for (let x = 0; x < symbolMeta[y].length; ++x) {
+                if(symbolMeta[y][x] === 1) {
+                    Display.drawPixel(new Point(x + start.x, y + start.y), display);
+                }
+            }
+        }
+    }
+
+    public static drawGlass(glass: number[][]) {
+        for (let y = 0; y < glass.length; ++y) {
+            for (let x = 0; x < glass[y].length; ++x) {
+                if(glass[y][x] === 1) {
+                    Display.drawPixel(new Point(x, y), 0);
+                }
+            }
+        }
+    }
+
+    public static drawInfo(score: number, level: number, lines: number, state: GameState) {
+        $score.textContent = score.toString();
+        $level.textContent = level.toString();
+        $lines.textContent = lines.toString();
+
+        switch(state)
+        {
+            case GameState.Idle:
+                $state.textContent = "Idle";
+                break;
+            case GameState.ScreenCleaning:
+                $state.textContent = "Screen";
+                break;
+            case GameState.Play:
+                $state.textContent = "Play";
+                break;
+            case GameState.LinesCleaning:
+                $state.textContent = "Lines";
+                break;
+            case GameState.Over:
+                $state.textContent = "Over";
+                break;
+        }
+    }
+
+    //----
+    public static drawСountdown(): Promise<any> {
+        let counter = 9;
+
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                Display.clear();
+                Display.drawSymbol("0", new Point(1 , 5), 0);
+                Display.drawSymbol(counter.toString(), new Point(6 , 5), 0);
+
+                if(counter === 0) {
+                    clearInterval(process);
+                    resolve();
+                }
+
+                --counter;
+            }, 300);
+        });
+    }
+
+    public static drawPieces(): Promise<any> {
+        let counter = 6;
+
+        return new Promise((resolve, reject) => {
+            const process = setInterval(function() {
+                Display.clearNext();
+
+                const type = pieceTypes.get(counter);
+                const piece = new Piece(type, new Point(0 , 0))
+
+                for (let y = 0; y < piece.blocks.length; ++y) {
+                    for (let x = 0; x < piece.blocks[y].length; ++x) {
+                        if(piece.blocks[y][x] === 1) {
+                            Display.drawPixel(new Point(piece.position.x + x, piece.position.y + y), 1);
+                        }
+                    }
+                }
+
+                if(counter === 0) {
+                    clearInterval(process);
+                    resolve();
+                }
+
+                --counter;
+            }, 300);
+        });
     }
 }

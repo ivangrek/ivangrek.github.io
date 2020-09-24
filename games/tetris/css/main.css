@@ -13,7 +13,9 @@ html, body {
 body {
     display: flex;
     align-items: center;
-    background-color: var(--back-color); 
+    background-color: var(--back-color);
+    font-family: monospace;
+    font-size: 16px;
 }
 
 .display {
