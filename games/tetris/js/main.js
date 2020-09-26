@@ -438,9 +438,7 @@ class Game {
         this.completeLines = [];
         this.components = [];
         this.state = GameState.Idle;
-        this.glass = new Array(Display.height)
-            .fill(0)
-            .map(() => new Array(Display.width).fill(0));
+        this.reset();
         this.cleaner = new Cleaner(this);
         this.cleaner.enable = false;
         this.clock = new Clock(this);
@@ -585,7 +583,6 @@ class Game {
                         this.clock.enable = false;
                         this.cleaner.enable = true;
                         this.cleaner.nextGameState = GameState.Play;
-                        this.reset();
                         break;
                 }
                 break;
@@ -593,6 +590,7 @@ class Game {
                 switch (state) {
                     case GameState.Play:
                         this.state = state;
+                        this.reset();
                         this.newRound();
                         break;
                     case GameState.Over:
@@ -658,6 +656,7 @@ class Game {
         quickFallTimer.stop();
         this.nextPiece();
         if (this.hasCollisions()) {
+            this.appendPiece();
             this.setState(GameState.ScreenCleaning);
         }
     }
