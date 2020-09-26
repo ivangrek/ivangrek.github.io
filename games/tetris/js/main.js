@@ -451,7 +451,7 @@ class Game {
     update(delta) {
         switch (this.state) {
             case GameState.Idle:
-                if (Application.getButtonDown(Button.Up)) {
+                if (Application.getButtonDown(Button.Start)) {
                     this.setState(GameState.ScreenCleaning);
                 }
                 break;
@@ -739,25 +739,25 @@ class Game {
 }
 class Display {
     static clear() {
-        $glassCells.forEach(cell => {
-            cell.classList.remove("active");
+        $glassCells.forEach($cell => {
+            $cell.classList.remove("active");
         });
     }
     static clearNext() {
-        $nextCells.forEach(cell => {
-            cell.classList.remove("active");
+        $nextCells.forEach($cell => {
+            $cell.classList.remove("active");
         });
     }
     static drawPixel(point, display) {
-        let cells = $glassCells;
+        let $cells = $glassCells;
         let size = 10;
         if (display === 1) {
-            cells = $nextCells;
+            $cells = $nextCells;
             size = 4;
         }
-        const cell = cells[point.x + (point.y) * size];
-        if (cell) {
-            cell.classList.add("active");
+        const $cell = $cells[point.x + (point.y) * size];
+        if ($cell) {
+            $cell.classList.add("active");
         }
     }
     static drawSymbol(symbol, start, display) {

@@ -1,9 +1,10 @@
 var Button;
 (function (Button) {
-    Button[Button["Up"] = 0] = "Up";
-    Button[Button["Down"] = 1] = "Down";
-    Button[Button["Left"] = 2] = "Left";
-    Button[Button["Right"] = 3] = "Right";
+    Button[Button["Start"] = 0] = "Start";
+    Button[Button["Up"] = 1] = "Up";
+    Button[Button["Down"] = 2] = "Down";
+    Button[Button["Left"] = 3] = "Left";
+    Button[Button["Right"] = 4] = "Right";
 })(Button || (Button = {}));
 class Component {
     constructor(gameObject) {
@@ -12,18 +13,21 @@ class Component {
 class Input {
     constructor() {
         this.holdedButtons = new Map([
+            [Button.Start, false],
             [Button.Up, false],
             [Button.Down, false],
             [Button.Left, false],
             [Button.Right, false]
         ]);
         this.keyDownButtons = new Map([
+            [Button.Start, false],
             [Button.Up, false],
             [Button.Down, false],
             [Button.Left, false],
             [Button.Right, false]
         ]);
         this.keyUpButtons = new Map([
+            [Button.Start, false],
             [Button.Up, false],
             [Button.Down, false],
             [Button.Left, false],
@@ -34,12 +38,14 @@ class Input {
     }
     update(delta) {
         this.keyDownButtons = new Map([
+            [Button.Start, false],
             [Button.Up, false],
             [Button.Down, false],
             [Button.Left, false],
             [Button.Right, false]
         ]);
         this.keyUpButtons = new Map([
+            [Button.Start, false],
             [Button.Up, false],
             [Button.Down, false],
             [Button.Left, false],
@@ -57,25 +63,31 @@ class Input {
     }
     onKeyDown(e) {
         switch (e.code) {
-            case "KeyW":
+            case Input.KeyE:
+                this.holdedButtons.set(Button.Start, true);
+                if (!e.repeat) {
+                    this.keyDownButtons.set(Button.Start, true);
+                }
+                break;
+            case Input.KeyW:
                 this.holdedButtons.set(Button.Up, true);
                 if (!e.repeat) {
                     this.keyDownButtons.set(Button.Up, true);
                 }
                 break;
-            case "KeyS":
+            case Input.KeyS:
                 this.holdedButtons.set(Button.Down, true);
                 if (!e.repeat) {
                     this.keyDownButtons.set(Button.Down, true);
                 }
                 break;
-            case "KeyA":
+            case Input.KeyA:
                 this.holdedButtons.set(Button.Left, true);
                 if (!e.repeat) {
                     this.keyDownButtons.set(Button.Left, true);
                 }
                 break;
-            case "KeyD":
+            case Input.KeyD:
                 this.holdedButtons.set(Button.Right, true);
                 if (!e.repeat) {
                     this.keyDownButtons.set(Button.Right, true);
@@ -87,22 +99,27 @@ class Input {
     }
     onKeyUp(e) {
         switch (e.code) {
-            case "KeyW":
+            case Input.KeyE:
+                this.holdedButtons.set(Button.Start, false);
+                this.keyDownButtons.set(Button.Start, false);
+                this.keyUpButtons.set(Button.Start, true);
+                break;
+            case Input.KeyW:
                 this.holdedButtons.set(Button.Up, false);
                 this.keyDownButtons.set(Button.Up, false);
                 this.keyUpButtons.set(Button.Up, true);
                 break;
-            case "KeyS":
+            case Input.KeyS:
                 this.holdedButtons.set(Button.Down, false);
                 this.keyDownButtons.set(Button.Down, false);
                 this.keyUpButtons.set(Button.Down, true);
                 break;
-            case "KeyA":
+            case Input.KeyA:
                 this.holdedButtons.set(Button.Left, false);
                 this.keyDownButtons.set(Button.Left, false);
                 this.keyUpButtons.set(Button.Left, true);
                 break;
-            case "KeyD":
+            case Input.KeyD:
                 this.holdedButtons.set(Button.Right, false);
                 this.keyDownButtons.set(Button.Right, false);
                 this.keyUpButtons.set(Button.Right, true);
@@ -112,6 +129,11 @@ class Input {
         }
     }
 }
+Input.KeyE = "KeyE";
+Input.KeyW = "KeyW";
+Input.KeyS = "KeyS";
+Input.KeyA = "KeyA";
+Input.KeyD = "KeyD";
 class Time {
     constructor() {
         this.timers = new Map();

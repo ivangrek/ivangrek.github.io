@@ -54,6 +54,30 @@ body {
 
 .score {
     margin-top: calc(11 * var(--line-width));
+    display: flex;
+}
+
+.score .value {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.level {
+    display: flex;
+}
+
+.level .value {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.lines {
+    display: flex;
+}
+
+.lines .value {
+    flex-grow: 1;
+    text-align: right;
 }
 
 .state {

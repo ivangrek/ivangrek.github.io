@@ -520,7 +520,7 @@ class Game implements IGameObject {
     public update(delta: number) {
         switch(this.state) {
             case GameState.Idle:
-                if(Application.getButtonDown(Button.Up)) {
+                if(Application.getButtonDown(Button.Start)) {
                     this.setState(GameState.ScreenCleaning);
                 }
                 break;
@@ -902,30 +902,30 @@ class Display {
     public static height: number = 20;
 
     public static clear() {
-        $glassCells.forEach(cell => {
-            cell.classList.remove("active");
+        $glassCells.forEach($cell => {
+            $cell.classList.remove("active");
         });
     }
 
     public static clearNext() {
-        $nextCells.forEach(cell => {
-            cell.classList.remove("active");
+        $nextCells.forEach($cell => {
+            $cell.classList.remove("active");
         });
     }
 
     public static drawPixel(point: Point, display: number) {
-        let cells = $glassCells;
+        let $cells = $glassCells;
         let size = 10;
 
         if(display === 1) {
-            cells = $nextCells;
+            $cells = $nextCells;
             size = 4;
         }
 
-        const cell = cells[point.x + (point.y) * size];
+        const $cell = $cells[point.x + (point.y) * size];
 
-        if(cell) {
-            cell.classList.add("active");
+        if($cell) {
+            $cell.classList.add("active");
         }
     }
 
