@@ -1,0 +1,112 @@
+:root {
+  --line-width: 3px;
+  --back-color: #eee;
+  --front-color: #333;
+}
+        
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    background-color: var(--back-color);
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.display {
+    display: flex;
+    margin: 0 auto;
+}
+
+.glass {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: calc(10 * 11 * var(--line-width) + var(--line-width));
+    max-width: calc(10 * 11 * var(--line-width) + var(--line-width));
+    margin: 0 auto;
+    
+    /* border: calc(var(--line-width)) solid var(--front-color); */
+    background-color: white;
+    padding: calc(var(--line-width)) 0 0 calc(var(--line-width));
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    margin-left: calc(11 * var(--line-width));
+}
+
+.next {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: calc(4 * 11 * var(--line-width) + var(--line-width));
+    max-width: calc(4 * 11 * var(--line-width) + var(--line-width));
+    min-height: calc(4 * 11 * var(--line-width) + var(--line-width));
+    max-height: calc(4 * 11 * var(--line-width) + var(--line-width));
+    background-color: white;
+    padding: calc(var(--line-width)) 0 0 calc(var(--line-width));
+}
+
+.score {
+    margin-top: calc(11 * var(--line-width));
+    display: flex;
+}
+
+.score .value {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.level {
+    display: flex;
+}
+
+.level .value {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.lines {
+    display: flex;
+}
+
+.lines .value {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.state {
+    margin-top: calc(11 * var(--line-width));
+}
+
+.keys {
+    margin-top: calc(11 * var(--line-width));
+}
+
+.cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(10 * var(--line-width));
+    height: calc(10 * var(--line-width));
+    background-color: var(--back-color);
+    margin: 0 calc(var(--line-width)) calc(var(--line-width)) 0;
+    box-sizing: border-box;
+}
+
+.cell::after {
+    content: '';
+    width: calc(5 * var(--line-width));
+    height: calc(5 * var(--line-width));
+    background: transparent;
+    border: calc(var(--line-width)) solid white;
+}
+
+.cell.active {
+    background-color: var(--front-color);    
+}

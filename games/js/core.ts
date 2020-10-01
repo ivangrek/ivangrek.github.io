@@ -14,13 +14,15 @@ interface IDrawable {
     draw: () => void;
 }
 
-abstract class Component<T extends IGameObject> implements IUpdateable {
+abstract class Component<T extends IGameObject> implements IUpdateable, IDrawable {
     constructor(gameObject: T) {
     }
 
     public enable: boolean;
 
     public update: (delta: number) => void;
+
+    public draw: () => void;
 }
 
 interface IGameObject extends IUpdateable, IDrawable  {
