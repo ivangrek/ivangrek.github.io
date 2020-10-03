@@ -1,20 +1,9 @@
 var Tetris;
 (function (Tetris) {
-    let $glassCells;
-    let $nextCells;
-    let $score;
-    let $level;
-    let $lines;
-    let $state;
     let $sound;
     document.addEventListener("DOMContentLoaded", function () {
-        $glassCells = document.querySelectorAll(".glass .cell");
-        $nextCells = document.querySelectorAll(".next .cell");
-        $score = document.querySelector(".score .value");
-        $level = document.querySelector(".level .value");
-        $lines = document.querySelector(".lines .value");
-        $state = document.querySelector(".state .value");
         $sound = document.getElementById("audio");
+        Display.initialize(".display");
         Application.run(new Game());
     });
     var symbols = {
@@ -119,12 +108,6 @@ var Tetris;
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min) + min); // [min, max)
-    }
-    class Point {
-        constructor(x, y) {
-            this.x = x;
-            this.y = y;
-        }
     }
     class Piece {
         constructor(type, position) {
@@ -572,15 +555,15 @@ var Tetris;
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
                 case GameState.ScreenCleaning:
-                    Display.clearNext();
+                    Display.clear(1);
                     this.cleaner.draw();
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
                 case GameState.Play:
-                    Display.clear();
+                    Display.clear(0);
                     this.current.draw();
                     //this.next.draw();
-                    Display.clearNext();
+                    Display.clear(1);
                     for (let y = 0; y < this.next.blocks.length; ++y) {
                         for (let x = 0; x < this.next.blocks[y].length; ++x) {
                             if (this.next.blocks[y][x] === 1) {
@@ -592,12 +575,12 @@ var Tetris;
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
                 case GameState.LinesCleaning:
-                    Display.clear();
+                    Display.clear(0);
                     Display.drawGlass(this.glass);
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
                 case GameState.Over:
-                    Display.clear();
+                    Display.clear(0);
                     Display.drawGlass(this.glass);
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
@@ -767,31 +750,36 @@ var Tetris;
             });
         }
     }
-    let Color;
-    (function (Color) {
-        Color[Color["Transparent"] = 0] = "Transparent";
-        Color[Color["White"] = 1] = "White";
-        Color[Color["Black"] = 2] = "Black";
-    })(Color || (Color = {}));
     class Display {
-        static clear() {
-            $glassCells.forEach($cell => {
-                $cell.classList.remove("active");
-            });
+        static initialize(displayCssClass) {
+            const $display = document.querySelector(displayCssClass);
+            this.$mainCells = $display.querySelectorAll(".glass .cell");
+            this.$nextCells = $display.querySelectorAll(".next .cell");
+            this.$score = $display.querySelector(".score .value");
+            this.$level = $display.querySelector(".level .value");
+            this.$lines = $display.querySelector(".lines .value");
+            this.$state = $display.querySelector(".state .value");
         }
-        static clearNext() {
-            $nextCells.forEach($cell => {
+        static clear(display) {
+            let $cells = this.$mainCells;
+            if (display === 1) {
+                $cells = this.$nextCells;
+            }
+            $cells.forEach($cell => {
                 $cell.classList.remove("active");
             });
         }
         static drawPixel(point, color, display) {
-            let $cells = $glassCells;
+            let $cells = this.$mainCells;
             let size = 10;
             if (display === 1) {
-                $cells = $nextCells;
+                $cells = this.$nextCells;
                 size = 4;
             }
             const $cell = $cells[point.x + (point.y) * size];
+            if ($cell === undefined) {
+                return;
+            }
             switch (color) {
                 case Color.White:
                     $cell.classList.remove("active");
@@ -801,12 +789,20 @@ var Tetris;
                     break;
             }
         }
+        static drawBitmap(bitmap, point, display) {
+            for (var y = 0; y < bitmap.height; ++y) {
+                for (var x = 0; x < bitmap.width; ++x) {
+                    const color = bitmap.value[x + y * bitmap.width];
+                    this.drawPixel(new Point(point.x + x, point.y + y), color, display);
+                }
+            }
+        }
         static drawSymbol(symbol, start, display) {
             const symbolMeta = symbols[symbol];
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
                     if (symbolMeta[y][x] === 1) {
-                        Display.drawPixel(new Point(x + start.x, y + start.y), Color.Black, display);
+                        this.drawPixel(new Point(x + start.x, y + start.y), Color.Black, display);
                     }
                 }
             }
@@ -815,30 +811,30 @@ var Tetris;
             for (let y = 0; y < glass.length; ++y) {
                 for (let x = 0; x < glass[y].length; ++x) {
                     if (glass[y][x] === 1) {
-                        Display.drawPixel(new Point(x, y), Color.Black, 0);
+                        this.drawPixel(new Point(x, y), Color.Black, 0);
                     }
                 }
             }
         }
         static drawInfo(score, level, lines, state) {
-            $score.textContent = score.toString();
-            $level.textContent = level.toString();
-            $lines.textContent = lines.toString();
+            this.$score.textContent = score.toString();
+            this.$level.textContent = level.toString();
+            this.$lines.textContent = lines.toString();
             switch (state) {
                 case GameState.Idle:
-                    $state.textContent = "Idle";
+                    this.$state.textContent = "Idle";
                     break;
                 case GameState.ScreenCleaning:
-                    $state.textContent = "Screen";
+                    this.$state.textContent = "Screen";
                     break;
                 case GameState.Play:
-                    $state.textContent = "Play";
+                    this.$state.textContent = "Play";
                     break;
                 case GameState.LinesCleaning:
-                    $state.textContent = "Lines";
+                    this.$state.textContent = "Lines";
                     break;
                 case GameState.Over:
-                    $state.textContent = "Over";
+                    this.$state.textContent = "Over";
                     break;
             }
         }

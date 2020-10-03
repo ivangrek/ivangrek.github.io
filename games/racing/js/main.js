@@ -1,5 +1,5 @@
-var Snake;
-(function (Snake) {
+var Race;
+(function (Race) {
     let $sound;
     document.addEventListener("DOMContentLoaded", function () {
         $sound = document.getElementById("audio");
@@ -187,6 +187,23 @@ var Snake;
             this.timer.start(25);
         }
     }
+    class CarTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Black, Color.Transparent,
+                Color.Black, Color.Black, Color.Black,
+                Color.Transparent, Color.Black, Color.Transparent,
+                Color.Black, Color.Transparent, Color.Black
+            ];
+            super(3, 4, value);
+        }
+    }
+    class Car {
+        constructor(position) {
+            this.position = position;
+            this.image = new CarTexture();
+        }
+    }
     class Game {
         constructor() {
             this.components = [];
@@ -209,46 +226,60 @@ var Snake;
                 case GameState.ScreenCleaning:
                     break;
                 case GameState.Play:
-                    const moveTimer = Application.timer("move");
-                    if (moveTimer.time) {
-                        if (this.hasCollisions(this.to)) {
-                            this.setState(GameState.Over);
-                        }
-                        else {
-                            this.neck = this.head;
-                            this.head = this.to;
-                            this.snake.push(this.head);
-                            this.to = new Point(this.head.x + this.head.x - this.neck.x, this.head.y + this.head.y - this.neck.y);
-                            if (this.head.x === this.food.x && this.head.y === this.food.y) {
-                                $sound.currentTime = 0;
-                                $sound.play();
-                                this.calculateScores();
-                                this.newFood();
-                            }
-                            else {
-                                this.from = this.snake.shift();
-                            }
-                        }
-                    }
                     // Left
-                    if (Application.getButton(Button.Left) && this.head.x - this.neck.x === 0) {
-                        this.to = new Point(this.head.x - 1, this.head.y);
+                    if (Application.getButtonDown(Button.Left) && this.car.position.x > 1) {
+                        this.moveTo = new Point(this.car.position.x, this.car.position.y);
+                        this.moveTo.x -= 3;
                     }
                     // Right
-                    if (Application.getButton(Button.Right) && this.head.x - this.neck.x === 0) {
-                        this.to = new Point(this.head.x + 1, this.head.y);
+                    if (Application.getButtonDown(Button.Right) && this.car.position.x < 7) {
+                        this.moveTo = new Point(this.car.position.x, this.car.position.y);
+                        this.moveTo.x += 3;
                     }
+                    const moveTimer = Application.timer("move");
+                    const borderTimer = Application.timer("border");
                     // Up
-                    if (Application.getButton(Button.Up) && this.head.y - this.neck.y === 0) {
-                        this.to = new Point(this.head.x, this.head.y - 1);
+                    if (Application.getButtonDown(Button.Up)) {
+                        this.level = Math.min(20, this.level + 1);
+                        moveTimer.start(1000 / (this.level + 1));
+                        borderTimer.start(500 / (this.level + 1));
                     }
                     // Down
-                    if (Application.getButton(Button.Down) && this.head.y - this.neck.y === 0) {
-                        this.to = new Point(this.head.x, this.head.y + 1);
+                    if (Application.getButtonDown(Button.Down)) {
+                        this.level = Math.max(0, this.level - 1);
+                        moveTimer.start(1000 / (this.level + 1));
+                        borderTimer.start(500 / (this.level + 1));
                     }
-                    const foodTimer = Application.timer("food");
-                    if (foodTimer.time) {
-                        this.showFood = !this.showFood;
+                    if (borderTimer.time) {
+                        this.border.unshift(this.border.pop());
+                    }
+                    if (moveTimer.time) {
+                        this.enemies.forEach(enemy => {
+                            enemy.position.y += 1;
+                        });
+                        this.enemies = this.enemies.filter(enemy => {
+                            const ahead = enemy.position.y < Display.height;
+                            if (!ahead) {
+                                this.calculateScores();
+                            }
+                            return ahead;
+                        });
+                        this.currentDistance += 1;
+                        if (this.currentDistance === this.distance) {
+                            var random = getRandomInt(0, 3);
+                            var xPositions = [1, 4, 7];
+                            this.enemies.push(new Car(new Point(xPositions[random], -4)));
+                            this.currentDistance = 0;
+                        }
+                    }
+                    if (this.hasCollisions(this.moveTo)) {
+                        $sound.currentTime = 0;
+                        $sound.play();
+                        this.car.position = new Point(this.car.position.x - Math.sign(this.car.position.x - this.moveTo.x), this.moveTo.y);
+                        this.setState(GameState.Over);
+                    }
+                    else {
+                        this.car.position = new Point(this.moveTo.x, this.moveTo.y);
                     }
                     break;
                 case GameState.Over:
@@ -265,8 +296,6 @@ var Snake;
         draw() {
             switch (this.state) {
                 case GameState.Idle:
-                    // Display.clear();
-                    // Display.drawGlass(this.glass);
                     this.clock.draw();
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
@@ -276,21 +305,23 @@ var Snake;
                     break;
                 case GameState.Play:
                     Display.clear(0);
-                    this.snake.forEach(point => {
-                        Display.drawPixel(point, Color.Black, 0);
+                    for (let y = 0; y < Display.height; ++y) {
+                        Display.drawPixel(new Point(0, y), this.border[y], 0);
+                    }
+                    Display.drawBitmap(this.car.image, this.car.position, 0);
+                    this.enemies.forEach(enemy => {
+                        Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
-                    if (this.showFood) {
-                        Display.drawPixel(this.food, Color.Black, 0);
-                    }
-                    else {
-                        Display.drawPixel(this.food, Color.White, 0);
-                    }
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
                 case GameState.Over:
                     Display.clear(0);
-                    this.snake.forEach(point => {
-                        Display.drawPixel(point, Color.Black, 0);
+                    for (let y = 0; y < Display.height; ++y) {
+                        Display.drawPixel(new Point(0, y), this.border[y], 0);
+                    }
+                    Display.drawBitmap(this.car.image, this.car.position, 0);
+                    this.enemies.forEach(enemy => {
+                        Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
                     Display.drawInfo(this.score, this.level, this.lines, this.state);
                     break;
@@ -313,9 +344,10 @@ var Snake;
                         case GameState.Play:
                             this.state = state;
                             this.reset();
-                            this.newFood();
                             const moveTimer = Application.timer("move");
-                            moveTimer.start(300);
+                            moveTimer.start(1000 / (this.level + 1));
+                            const borderTimer = Application.timer("border");
+                            borderTimer.start(500 / (this.level + 1));
                             break;
                         case GameState.Idle:
                             this.state = state;
@@ -344,58 +376,29 @@ var Snake;
             }
         }
         reset() {
-            this.head = new Point(5, 8);
-            this.neck = new Point(5, 7);
-            this.tail = new Point(5, 6);
-            this.to = new Point(5, 9);
-            this.from = new Point(5, 5);
-            this.snake = [
-                this.tail,
-                this.neck,
-                this.head
+            this.border = [
+                Color.Black, Color.Black, Color.White, Color.Black, Color.Black, Color.Black, Color.White, Color.Black, Color.Black, Color.White,
+                Color.Black, Color.Black, Color.White, Color.Black, Color.Black, Color.Black, Color.White, Color.Black, Color.Black, Color.White
             ];
+            this.car = new Car(new Point(4, 15));
+            this.enemies = [];
+            this.distance = 10;
+            this.currentDistance = 0;
+            this.moveTo = this.car.position;
             this.score = 0;
             this.level = 0;
             this.lines = 0;
         }
         calculateScores() {
-            this.score += 50 + getRandomInt(0, 50) + 1;
+            this.score += this.level * 50 + getRandomInt(0, 50) + 1;
             this.lines += 1;
             this.level += 0;
         }
-        newFood() {
-            let availableFoodPositions = [];
-            for (let y = 0; y < Display.height; ++y) {
-                for (let x = 0; x < Display.width; ++x) {
-                    const contains = this.snake.some(point => {
-                        return point.x === x && point.y === y;
-                    });
-                    if (!contains) {
-                        availableFoodPositions.push(new Point(x, y));
-                    }
-                }
-            }
-            this.food = availableFoodPositions[getRandomInt(0, availableFoodPositions.length)];
-            this.showFood = true;
-            const foodTimer = Application.timer("food");
-            foodTimer.start(200);
-        }
-        hasCollisions(to) {
-            if (to.x < 0) {
-                return true;
-            }
-            if (to.x > Display.width - 1) {
-                return true;
-            }
-            if (to.y < 0) {
-                return true;
-            }
-            if (to.y > Display.height - 1) {
-                return true;
-            }
-            for (let i = 0; i < this.snake.length; ++i) {
-                const point = this.snake[i];
-                if (point.x === this.to.x && point.y === this.to.y) {
+        hasCollisions(moveTo) {
+            for (let i = 0; i < this.enemies.length; ++i) {
+                const enemy = this.enemies[i];
+                if (Math.abs(enemy.position.x - moveTo.x) < enemy.image.width
+                    && Math.abs(enemy.position.y - moveTo.y) < enemy.image.height) {
                     return true;
                 }
             }
@@ -490,4 +493,4 @@ var Snake;
     }
     Display.width = 10;
     Display.height = 20;
-})(Snake || (Snake = {}));
+})(Race || (Race = {}));

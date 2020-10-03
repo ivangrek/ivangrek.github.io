@@ -299,3 +299,33 @@ class Application {
             .timer(name);
     }
 }
+
+// Graphics
+
+class Point {
+    public x: number;
+    public y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+enum Color {
+    Transparent,
+    White,
+    Black
+}
+
+abstract class Bitmap {
+    public width: number;
+    public height: number;
+    public value: Color[];
+
+    constructor(width: number, height: number, value: Color[]) {
+        this.width = width;
+        this.height = height;
+        this.value = value;
+    }
+}

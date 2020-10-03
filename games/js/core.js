@@ -223,3 +223,23 @@ Application.components = new Array();
 Application.childs = new Array();
 Application.input = new Input();
 Application.time = new Time();
+// Graphics
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+var Color;
+(function (Color) {
+    Color[Color["Transparent"] = 0] = "Transparent";
+    Color[Color["White"] = 1] = "White";
+    Color[Color["Black"] = 2] = "Black";
+})(Color || (Color = {}));
+class Bitmap {
+    constructor(width, height, value) {
+        this.width = width;
+        this.height = height;
+        this.value = value;
+    }
+}
