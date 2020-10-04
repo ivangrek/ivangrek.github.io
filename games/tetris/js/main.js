@@ -6,85 +6,6 @@ var Tetris;
         Display.initialize(".display");
         Application.run(new Game());
     });
-    var symbols = {
-        "0": [
-            [1, 1, 1],
-            [1, 0, 1],
-            [1, 0, 1],
-            [1, 0, 1],
-            [1, 1, 1]
-        ],
-        "1": [
-            [0, 1, 0],
-            [1, 1, 0],
-            [0, 1, 0],
-            [0, 1, 0],
-            [1, 1, 1]
-        ],
-        "2": [
-            [1, 1, 1],
-            [0, 0, 1],
-            [0, 1, 0],
-            [1, 0, 0],
-            [1, 1, 1]
-        ],
-        "3": [
-            [1, 1, 1],
-            [0, 0, 1],
-            [0, 1, 1],
-            [0, 0, 1],
-            [1, 1, 1]
-        ],
-        "4": [
-            [1, 0, 1],
-            [1, 0, 1],
-            [1, 1, 1],
-            [0, 0, 1],
-            [0, 0, 1]
-        ],
-        "5": [
-            [1, 1, 1],
-            [1, 0, 0],
-            [1, 1, 1],
-            [0, 0, 1],
-            [1, 1, 1]
-        ],
-        "6": [
-            [1, 1, 1],
-            [1, 0, 0],
-            [1, 1, 1],
-            [1, 0, 1],
-            [1, 1, 1]
-        ],
-        "7": [
-            [1, 1, 1],
-            [0, 0, 1],
-            [0, 1, 0],
-            [0, 1, 0],
-            [0, 1, 0]
-        ],
-        "8": [
-            [1, 1, 1],
-            [1, 0, 1],
-            [1, 1, 1],
-            [1, 0, 1],
-            [1, 1, 1]
-        ],
-        "9": [
-            [1, 1, 1],
-            [1, 0, 1],
-            [1, 1, 1],
-            [0, 0, 1],
-            [1, 1, 1]
-        ],
-        ".": [
-            [1, 1, 0],
-            [1, 1, 0],
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0]
-        ]
-    };
     let PieceType;
     (function (PieceType) {
         PieceType[PieceType["I"] = 0] = "I";
@@ -104,11 +25,6 @@ var Tetris;
         [5, PieceType.O],
         [6, PieceType.T]
     ]);
-    function getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min) + min); // [min, max)
-    }
     class Piece {
         constructor(type, position) {
             this.pieces = new Map([
@@ -309,9 +225,9 @@ var Tetris;
                     ]
                 ],
             ]);
-            this.type = pieceTypes.get(getRandomInt(0, 7)); //type;
+            this.type = pieceTypes.get(Utils.random(0, 7)); //type;
             this.position = position;
-            this.rotation = getRandomInt(0, 4);
+            this.rotation = Utils.random(0, 4);
             this.blocks = this.pieces.get(this.type)[this.rotation];
         }
         update(delta) {
@@ -350,105 +266,16 @@ var Tetris;
         GameState[GameState["LinesCleaning"] = 3] = "LinesCleaning";
         GameState[GameState["Over"] = 4] = "Over";
     })(GameState || (GameState = {}));
-    class Clock extends Component {
-        constructor(gameObject) {
-            super(gameObject);
-            this.gameObject = gameObject;
-            this.timer = Application.timer("clock");
-            this.showDots = false;
-            this.update = (delta) => {
-                if (this.timer.time) {
-                    this.bitmap = new Array(Display.height)
-                        .fill(Color.White)
-                        .map(() => new Array(Display.width).fill(Color.White));
-                    this.addTime();
-                    if (this.showDots = !this.showDots) {
-                        this.addDots();
-                    }
-                }
-            };
-            this.draw = () => {
-                for (let y = 0; y < this.bitmap.length; ++y) {
-                    for (let x = 0; x < this.bitmap[y].length; ++x) {
-                        Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                    }
-                }
-            };
-            this.bitmap = new Array(Display.height)
-                .fill(Color.White)
-                .map(() => new Array(Display.width).fill(Color.White));
-            this.timer.start(500);
-        }
-        addSymbol(symbol, start) {
-            const symbolMeta = symbols[symbol];
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if (symbolMeta[y][x] === 1) {
-                        this.bitmap[y + start.y][x + start.x] = Color.Black;
-                    }
-                }
-            }
-        }
-        addTime() {
-            const now = new Date();
-            const hours = (now.getHours() < 10 ? "0" : "") + now.getHours();
-            const minutes = (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
-            const hoursDigits = hours.split("");
-            const minutesDigits = minutes.split("");
-            this.addSymbol(hoursDigits[0], new Point(1, 2));
-            this.addSymbol(hoursDigits[1], new Point(6, 2));
-            this.addSymbol(minutesDigits[0], new Point(1, 13));
-            this.addSymbol(minutesDigits[1], new Point(6, 13));
-        }
-        addDots() {
-            this.addSymbol(".", new Point(2, 9));
-            this.addSymbol(".", new Point(6, 9));
-        }
-    }
-    class Cleaner extends Component {
-        constructor(gameObject) {
-            super(gameObject);
-            this.gameObject = gameObject;
-            this.line = 0;
-            this.timer = Application.timer("cleaner");
-            this.update = (delta) => {
-                if (this.timer.time) {
-                    for (let x = 0; x < Display.width; ++x) {
-                        this.bitmap[Math.abs(this.line - Display.height + 1) - Math.floor(this.line / Display.height)][x] = 2 - Math.floor(this.line / Display.height);
-                    }
-                    ++this.line;
-                    if (this.line === Display.height * 2) {
-                        this.bitmap = new Array(Display.height)
-                            .fill(Color.Transparent)
-                            .map(() => new Array(Display.width).fill(Color.Transparent));
-                        this.line = 0;
-                        this.enable = false;
-                        this.gameObject.setState(this.nextGameState);
-                    }
-                }
-            };
-            this.draw = () => {
-                for (let y = 0; y < this.bitmap.length; ++y) {
-                    for (let x = 0; x < this.bitmap[y].length; ++x) {
-                        Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                    }
-                }
-            };
-            this.bitmap = new Array(Display.height)
-                .fill(Color.Transparent)
-                .map(() => new Array(Display.width).fill(Color.Transparent));
-            this.timer.start(25);
-        }
-    }
     class Game {
         constructor() {
             this.completeLines = [];
             this.components = [];
             this.state = GameState.Idle;
+            this.nextState = GameState.Play;
             this.reset();
-            this.cleaner = new Cleaner(this);
+            this.cleaner = new Components.Cleaner(this);
             this.cleaner.enable = false;
-            this.clock = new Clock(this);
+            this.clock = new Components.Clock(this);
             this.clock.enable = true;
             this.components.push(this.cleaner);
             this.components.push(this.clock);
@@ -461,6 +288,9 @@ var Tetris;
                     }
                     break;
                 case GameState.ScreenCleaning:
+                    if (!this.cleaner.enable) {
+                        this.setState(this.nextState);
+                    }
                     break;
                 case GameState.Play:
                     this.current.update(delta);
@@ -552,12 +382,12 @@ var Tetris;
             switch (this.state) {
                 case GameState.Idle:
                     this.clock.draw();
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
                 case GameState.ScreenCleaning:
                     Display.clear(1);
                     this.cleaner.draw();
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
                 case GameState.Play:
                     Display.clear(0);
@@ -571,18 +401,18 @@ var Tetris;
                             }
                         }
                     }
-                    Display.drawGlass(this.glass);
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    this.drawGlass(this.glass);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
                 case GameState.LinesCleaning:
                     Display.clear(0);
-                    Display.drawGlass(this.glass);
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    this.drawGlass(this.glass);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
                 case GameState.Over:
                     Display.clear(0);
-                    Display.drawGlass(this.glass);
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    this.drawGlass(this.glass);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
             }
         }
@@ -592,9 +422,9 @@ var Tetris;
                     switch (state) {
                         case GameState.ScreenCleaning:
                             this.state = state;
+                            this.nextState = GameState.Play;
                             this.clock.enable = false;
                             this.cleaner.enable = true;
-                            this.cleaner.nextGameState = GameState.Play;
                             break;
                     }
                     break;
@@ -643,8 +473,8 @@ var Tetris;
                     switch (state) {
                         case GameState.ScreenCleaning:
                             this.state = state;
+                            this.nextState = GameState.Idle;
                             this.cleaner.enable = true;
-                            this.cleaner.nextGameState = GameState.Idle;
                             break;
                     }
                     break;
@@ -659,7 +489,7 @@ var Tetris;
             this.lines = 0;
         }
         calculateScores() {
-            this.score += this.completeLines.length * (this.completeLines.length + 1) * 50 + getRandomInt(0, 50) + 1;
+            this.score += this.completeLines.length * (this.completeLines.length + 1) * 50 + Utils.random(0, 50) + 1;
             this.lines += this.completeLines.length;
             this.level = Math.floor(this.lines / 20);
         }
@@ -696,8 +526,8 @@ var Tetris;
             return false;
         }
         nextPiece() {
-            this.current = this.next || new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
-            this.next = new Piece(pieceTypes.get(getRandomInt(0, 7)), new Point(3, 0));
+            this.current = this.next || new Piece(pieceTypes.get(Utils.random(0, 7)), new Point(3, 0));
+            this.next = new Piece(pieceTypes.get(Utils.random(0, 7)), new Point(3, 0));
         }
         appendPiece() {
             for (let y = 0; y < this.current.blocks.length; ++y) {
@@ -749,96 +579,14 @@ var Tetris;
                 }
             });
         }
-    }
-    class Display {
-        static initialize(displayCssClass) {
-            const $display = document.querySelector(displayCssClass);
-            this.$mainCells = $display.querySelectorAll(".glass .cell");
-            this.$nextCells = $display.querySelectorAll(".next .cell");
-            this.$score = $display.querySelector(".score .value");
-            this.$level = $display.querySelector(".level .value");
-            this.$lines = $display.querySelector(".lines .value");
-            this.$state = $display.querySelector(".state .value");
-        }
-        static clear(display) {
-            let $cells = this.$mainCells;
-            if (display === 1) {
-                $cells = this.$nextCells;
-            }
-            $cells.forEach($cell => {
-                $cell.classList.remove("active");
-            });
-        }
-        static drawPixel(point, color, display) {
-            let $cells = this.$mainCells;
-            let size = 10;
-            if (display === 1) {
-                $cells = this.$nextCells;
-                size = 4;
-            }
-            const $cell = $cells[point.x + (point.y) * size];
-            if ($cell === undefined) {
-                return;
-            }
-            switch (color) {
-                case Color.White:
-                    $cell.classList.remove("active");
-                    break;
-                case Color.Black:
-                    $cell.classList.add("active");
-                    break;
-            }
-        }
-        static drawBitmap(bitmap, point, display) {
-            for (var y = 0; y < bitmap.height; ++y) {
-                for (var x = 0; x < bitmap.width; ++x) {
-                    const color = bitmap.value[x + y * bitmap.width];
-                    this.drawPixel(new Point(point.x + x, point.y + y), color, display);
-                }
-            }
-        }
-        static drawSymbol(symbol, start, display) {
-            const symbolMeta = symbols[symbol];
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if (symbolMeta[y][x] === 1) {
-                        this.drawPixel(new Point(x + start.x, y + start.y), Color.Black, display);
-                    }
-                }
-            }
-        }
-        static drawGlass(glass) {
+        drawGlass(glass) {
             for (let y = 0; y < glass.length; ++y) {
                 for (let x = 0; x < glass[y].length; ++x) {
                     if (glass[y][x] === 1) {
-                        this.drawPixel(new Point(x, y), Color.Black, 0);
+                        Display.drawPixel(new Point(x, y), Color.Black, 0);
                     }
                 }
             }
         }
-        static drawInfo(score, level, lines, state) {
-            this.$score.textContent = score.toString();
-            this.$level.textContent = level.toString();
-            this.$lines.textContent = lines.toString();
-            switch (state) {
-                case GameState.Idle:
-                    this.$state.textContent = "Idle";
-                    break;
-                case GameState.ScreenCleaning:
-                    this.$state.textContent = "Screen";
-                    break;
-                case GameState.Play:
-                    this.$state.textContent = "Play";
-                    break;
-                case GameState.LinesCleaning:
-                    this.$state.textContent = "Lines";
-                    break;
-                case GameState.Over:
-                    this.$state.textContent = "Over";
-                    break;
-            }
-        }
     }
-    Display.width = 10;
-    Display.height = 20;
 })(Tetris || (Tetris = {}));

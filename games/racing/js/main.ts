@@ -8,214 +8,11 @@ namespace Race {
         Application.run(new Game());
     });
 
-    var symbols = {
-        "0": [
-            [1 , 1 , 1],
-            [1 , 0 , 1],
-            [1 , 0 , 1],
-            [1 , 0 , 1],
-            [1 , 1 , 1]
-        ],
-        "1": [
-            [0 , 1 , 0],
-            [1 , 1 , 0],
-            [0 , 1 , 0],
-            [0 , 1 , 0],
-            [1 , 1 , 1]
-        ],
-        "2": [
-            [1 , 1 , 1],
-            [0 , 0 , 1],
-            [0 , 1 , 0],
-            [1 , 0 , 0],
-            [1 , 1 , 1]
-        ],
-        "3": [
-            [1 , 1 , 1],
-            [0 , 0 , 1],
-            [0 , 1 , 1],
-            [0 , 0 , 1],
-            [1 , 1 , 1]
-        ],
-        "4": [
-            [1 , 0 , 1],
-            [1 , 0 , 1],
-            [1 , 1 , 1],
-            [0 , 0 , 1],
-            [0 , 0 , 1]
-        ],
-        "5": [
-            [1 , 1 , 1],
-            [1 , 0 , 0],
-            [1 , 1 , 1],
-            [0 , 0 , 1],
-            [1 , 1 , 1]
-        ],
-        "6": [
-            [1 , 1 , 1],
-            [1 , 0 , 0],
-            [1 , 1 , 1],
-            [1 , 0 , 1],
-            [1 , 1 , 1]
-        ],
-        "7": [
-            [1 , 1 , 1],
-            [0 , 0 , 1],
-            [0 , 1 , 0],
-            [0 , 1 , 0],
-            [0 , 1 , 0]
-        ],
-        "8": [
-            [1 , 1 , 1],
-            [1 , 0 , 1],
-            [1 , 1 , 1],
-            [1 , 0 , 1],
-            [1 , 1 , 1]
-        ],
-        "9": [
-            [1 , 1 , 1],
-            [1 , 0 , 1],
-            [1 , 1 , 1],
-            [0 , 0 , 1],
-            [1 , 1 , 1]
-        ],
-        ".": [
-            [1 , 1 , 0],
-            [1 , 1 , 0],
-            [0 , 0 , 0],
-            [0 , 0 , 0],
-            [0 , 0 , 0]
-        ]
-    };
-
-    function getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-
-        return Math.floor(Math.random() * (max - min) + min); // [min, max)
-    }
-
     enum GameState {
         Idle,
         ScreenCleaning,
         Play,
         Over
-    }
-
-    class Clock extends Component<Game> {
-        private bitmap: number[][];
-        private timer = Application.timer("clock");
-        private showDots: boolean = false;
-
-        constructor(private gameObject: Game) {
-            super(gameObject);
-
-            this.bitmap = new Array(Display.height)
-                .fill(Color.White)
-                .map(() => new Array(Display.width).fill(Color.White));
-
-            this.timer.start(500);
-        }
-
-        public update = (delta: number) => {
-            if(this.timer.time) {
-                this.bitmap = new Array(Display.height)
-                    .fill(Color.White)
-                    .map(() => new Array(Display.width).fill(Color.White));
-
-                this.addTime();
-
-                if(this.showDots = !this.showDots) {
-                    this.addDots();
-                }
-            }
-        };
-
-        public draw = () => {
-            for (let y = 0; y < this.bitmap.length; ++y) {
-                for (let x = 0; x < this.bitmap[y].length; ++x) {
-                    Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                }
-            }
-        };
-
-        private addSymbol(symbol: string, start: Point) {
-            const symbolMeta = symbols[symbol];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1) {
-                        this.bitmap[y + start.y][x + start.x] = Color.Black;
-                    }
-                }
-            }
-        }
-
-        private addTime() {
-            const now = new Date();
-            const hours = (now.getHours() < 10 ? "0" : "") + now.getHours();
-            const minutes = (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
-
-            const hoursDigits = hours.split("");
-            const minutesDigits = minutes.split("");
-
-            this.addSymbol(hoursDigits[0], new Point(1 , 2));
-            this.addSymbol(hoursDigits[1], new Point(6 , 2));
-            this.addSymbol(minutesDigits[0], new Point(1 , 13));
-            this.addSymbol(minutesDigits[1], new Point(6 , 13));
-        }
-
-        private addDots() {
-            this.addSymbol(".", new Point(2 , 9));
-            this.addSymbol(".", new Point(6 , 9));
-        }
-    }
-
-    class Cleaner extends Component<Game> {
-        private bitmap: Color[][];
-        private line: number = 0;
-        private timer = Application.timer("cleaner");
-
-        constructor(private gameObject: Game) {
-            super(gameObject);
-
-            this.bitmap = new Array(Display.height)
-                .fill(Color.Transparent)
-                .map(() => new Array(Display.width).fill(Color.Transparent));
-
-            this.timer.start(25);
-        }
-
-        public nextGameState: GameState;
-
-        public update = (delta: number) => {
-            if(this.timer.time) {
-                for(let x = 0; x < Display.width; ++x) {
-                    this.bitmap[Math.abs(this.line - Display.height + 1) - Math.floor(this.line / Display.height)][x] = <Color>2 - Math.floor(this.line / Display.height);
-                }
-
-                ++this.line;
-
-                if(this.line === Display.height * 2) {
-                    this.bitmap = new Array(Display.height)
-                        .fill(Color.Transparent)
-                        .map(() => new Array(Display.width).fill(Color.Transparent));
-
-                    this.line = 0;
-                    this.enable = false;
-
-                    this.gameObject.setState(this.nextGameState);
-                }
-            }
-        };
-
-        public draw = () => {
-            for (let y = 0; y < this.bitmap.length; ++y) {
-                for (let x = 0; x < this.bitmap[y].length; ++x) {
-                    Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                }
-            }
-        };
     }
 
     class CarTexture extends Bitmap {
@@ -243,6 +40,7 @@ namespace Race {
 
     class Game implements IGameObject {
         private state: GameState;
+        private nextState: GameState;
 
         private border: Color[];
         private car: Car;
@@ -257,19 +55,20 @@ namespace Race {
         private level: number;
         private lines: number;
 
-        public components: Component<IGameObject>[] = [];
-        private cleaner: Cleaner;
-        private clock: Clock;
+        public components: Component[] = [];
+        private cleaner: Components.Cleaner;
+        private clock: Components.Clock;
 
         constructor() {
             this.state = GameState.Idle;
+            this.nextState = GameState.Play;
 
             this.reset();
 
-            this.cleaner = new Cleaner(this);
+            this.cleaner = new Components.Cleaner(this);
             this.cleaner.enable = false;
 
-            this.clock = new Clock(this);
+            this.clock = new Components.Clock(this);
             this.clock.enable = true;
 
             this.components.push(this.cleaner);
@@ -285,6 +84,10 @@ namespace Race {
 
                     break;
                 case GameState.ScreenCleaning:
+                    if(!this.cleaner.enable) {
+                        this.setState(this.nextState);
+                    }
+
                     break;
                 case GameState.Play:
                     // Left
@@ -340,7 +143,7 @@ namespace Race {
                         this.currentDistance += 1;
 
                         if(this.currentDistance === this.distance) {
-                            var random = getRandomInt(0, 3);
+                            var random = Utils.random(0, 3);
                             var xPositions = [ 1, 4, 7];
 
                             this.enemies.push(new Car(new Point(xPositions[random], -4)));
@@ -380,12 +183,12 @@ namespace Race {
                 case GameState.Idle:
                     this.clock.draw();
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
                 case GameState.ScreenCleaning:
                     this.cleaner.draw();
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
                     break;
                 case GameState.Play:
                     Display.clear(0);
@@ -400,7 +203,7 @@ namespace Race {
                         Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
 
                     break;
                 case GameState.Over:
@@ -416,7 +219,7 @@ namespace Race {
                         Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state);
+                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
 
                     break;
             }
@@ -430,10 +233,10 @@ namespace Race {
                     {
                         case GameState.ScreenCleaning:
                             this.state = state;
+                            this.nextState = GameState.Play;
 
                             this.clock.enable = false;
                             this.cleaner.enable = true;
-                            this.cleaner.nextGameState = GameState.Play;
 
                             break;
                     }
@@ -484,9 +287,9 @@ namespace Race {
                     {
                         case GameState.ScreenCleaning:
                             this.state = state;
+                            this.nextState = GameState.Idle;
 
                             this.cleaner.enable = true;
-                            this.cleaner.nextGameState = GameState.Idle;
 
                             break;
                     }
@@ -515,7 +318,7 @@ namespace Race {
         }
 
         private calculateScores() {
-            this.score += this.level * 50 + getRandomInt(0, 50) + 1;
+            this.score += this.level * 50 + Utils.random(0, 50) + 1;
             this.lines += 1;
             this.level += 0;
         }
@@ -531,128 +334,6 @@ namespace Race {
             }
 
             return false;
-        }
-    }
-
-    class Display {
-        private static $mainCells:NodeListOf<Element>;
-        private static $nextCells:NodeListOf<Element>;
-
-        private static $score: Element;
-        private static $level: Element;
-        private static $lines: Element;
-
-        private static $state: Element;
-
-        public static width: number = 10;
-        public static height: number = 20;
-
-        public static initialize(displayCssClass: string) {
-            const $display = document.querySelector(displayCssClass);
-
-            this.$mainCells = $display.querySelectorAll(".glass .cell");
-            this.$nextCells = $display.querySelectorAll(".next .cell");
-
-            this.$score = $display.querySelector(".score .value");
-            this.$level = $display.querySelector(".level .value");
-            this.$lines = $display.querySelector(".lines .value");
-
-            this.$state = $display.querySelector(".state .value");
-        }
-
-        public static clear(display: number) {
-            let $cells = this.$mainCells;
-
-            if(display === 1) {
-                $cells = this.$nextCells;
-            }
-
-            $cells.forEach($cell => {
-                $cell.classList.remove("active");
-            });
-        }
-
-        public static drawPixel(point: Point, color: Color, display: number) {
-            let $cells = this.$mainCells;
-            let size = 10;
-
-            if(display === 1) {
-                $cells = this.$nextCells;
-                size = 4;
-            }
-
-            const $cell = $cells[point.x + (point.y) * size];
-
-            if($cell === undefined) {
-                return;
-            }
-
-            switch (color) {
-                case Color.White:
-                    $cell.classList.remove("active");
-                    break;
-                case Color.Black:
-                    $cell.classList.add("active");
-                    break;
-            }
-        }
-
-        public static drawBitmap(bitmap: Bitmap, point: Point, display: number) {
-            for(var y = 0; y < bitmap.height; ++y) {
-                for(var x = 0; x < bitmap.width; ++x) {
-                    const color = bitmap.value[x + y * bitmap.width];
-
-                    this.drawPixel(new Point(point.x + x, point.y + y), color, display)
-                }
-            }
-        }
-
-        public static drawSymbol(symbol: string, start: Point, display: number) {
-            const symbolMeta = symbols[symbol];
-
-            for (let y = 0; y < symbolMeta.length; ++y) {
-                for (let x = 0; x < symbolMeta[y].length; ++x) {
-                    if(symbolMeta[y][x] === 1) {
-                        this.drawPixel(new Point(x + start.x, y + start.y), Color.Black, display);
-                    }
-                }
-            }
-        }
-
-        public static drawGlass(glass: number[][]) {
-            for (let y = 0; y < glass.length; ++y) {
-                for (let x = 0; x < glass[y].length; ++x) {
-                    if(glass[y][x] === 1) {
-                        this.drawPixel(new Point(x, y), Color.Black, 0);
-                    }
-                }
-            }
-        }
-
-        public static drawInfo(score: number, level: number, lines: number, state: GameState) {
-            this.$score.textContent = score.toString();
-            this.$level.textContent = level.toString();
-            this.$lines.textContent = lines.toString();
-
-            switch(state)
-            {
-                case GameState.Idle:
-                    this.$state.textContent = "Idle";
-
-                    break;
-                case GameState.ScreenCleaning:
-                    this.$state.textContent = "Screen";
-
-                    break;
-                case GameState.Play:
-                    this.$state.textContent = "Play";
-
-                    break;
-                case GameState.Over:
-                    this.$state.textContent = "Over";
-
-                    break;
-            }
         }
     }
 }

@@ -243,3 +243,59 @@ class Bitmap {
         this.value = value;
     }
 }
+class Display {
+    static initialize(displayCssClass) {
+        const $display = document.querySelector(displayCssClass);
+        this.$mainCells = $display.querySelectorAll(".glass .cell");
+        this.$nextCells = $display.querySelectorAll(".next .cell");
+        this.$score = $display.querySelector(".score .value");
+        this.$level = $display.querySelector(".level .value");
+        this.$lines = $display.querySelector(".lines .value");
+        this.$state = $display.querySelector(".state .value");
+    }
+    static clear(display) {
+        let $cells = this.$mainCells;
+        if (display === 1) {
+            $cells = this.$nextCells;
+        }
+        $cells.forEach($cell => {
+            $cell.classList.remove("active");
+        });
+    }
+    static drawPixel(point, color, display) {
+        let $cells = this.$mainCells;
+        let size = 10;
+        if (display === 1) {
+            $cells = this.$nextCells;
+            size = 4;
+        }
+        const $cell = $cells[point.x + (point.y) * size];
+        if ($cell === undefined) {
+            return;
+        }
+        switch (color) {
+            case Color.White:
+                $cell.classList.remove("active");
+                break;
+            case Color.Black:
+                $cell.classList.add("active");
+                break;
+        }
+    }
+    static drawBitmap(bitmap, point, display) {
+        for (var y = 0; y < bitmap.height; ++y) {
+            for (var x = 0; x < bitmap.width; ++x) {
+                const color = bitmap.value[x + y * bitmap.width];
+                this.drawPixel(new Point(point.x + x, point.y + y), color, display);
+            }
+        }
+    }
+    static drawInfo(score, level, lines, state) {
+        this.$score.textContent = score.toString();
+        this.$level.textContent = level.toString();
+        this.$lines.textContent = lines.toString();
+        this.$state.textContent = state;
+    }
+}
+Display.width = 10;
+Display.height = 20;
