@@ -8,13 +8,6 @@ namespace Race {
         Application.run(new Game());
     });
 
-    enum GameState {
-        Idle,
-        ScreenCleaning,
-        Play,
-        Over
-    }
-
     class CarTexture extends Bitmap {
         constructor() {
             var value = [
@@ -36,6 +29,13 @@ namespace Race {
             this.position = position;
             this.image = new CarTexture();
         }
+    }
+
+    enum GameState {
+        Idle,
+        ScreenCleaning,
+        Play,
+        Over
     }
 
     class Game implements IGameObject {
@@ -183,12 +183,12 @@ namespace Race {
                 case GameState.Idle:
                     this.clock.draw();
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Idle");
                     break;
                 case GameState.ScreenCleaning:
                     this.cleaner.draw();
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Cleaning");
                     break;
                 case GameState.Play:
                     Display.clear(0);
@@ -203,7 +203,7 @@ namespace Race {
                         Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Play");
 
                     break;
                 case GameState.Over:
@@ -219,7 +219,7 @@ namespace Race {
                         Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Over");
 
                     break;
             }
@@ -276,7 +276,7 @@ namespace Race {
 
                             const overTimer = Application.timer("over");
 
-                            overTimer.start(3000);
+                            overTimer.start(2000);
 
                             break;
                     }

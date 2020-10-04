@@ -6,13 +6,6 @@ var Race;
         Display.initialize(".display");
         Application.run(new Game());
     });
-    let GameState;
-    (function (GameState) {
-        GameState[GameState["Idle"] = 0] = "Idle";
-        GameState[GameState["ScreenCleaning"] = 1] = "ScreenCleaning";
-        GameState[GameState["Play"] = 2] = "Play";
-        GameState[GameState["Over"] = 3] = "Over";
-    })(GameState || (GameState = {}));
     class CarTexture extends Bitmap {
         constructor() {
             var value = [
@@ -30,6 +23,13 @@ var Race;
             this.image = new CarTexture();
         }
     }
+    let GameState;
+    (function (GameState) {
+        GameState[GameState["Idle"] = 0] = "Idle";
+        GameState[GameState["ScreenCleaning"] = 1] = "ScreenCleaning";
+        GameState[GameState["Play"] = 2] = "Play";
+        GameState[GameState["Over"] = 3] = "Over";
+    })(GameState || (GameState = {}));
     class Game {
         constructor() {
             this.components = [];
@@ -127,11 +127,11 @@ var Race;
             switch (this.state) {
                 case GameState.Idle:
                     this.clock.draw();
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Idle");
                     break;
                 case GameState.ScreenCleaning:
                     this.cleaner.draw();
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Cleaning");
                     break;
                 case GameState.Play:
                     Display.clear(0);
@@ -142,7 +142,7 @@ var Race;
                     this.enemies.forEach(enemy => {
                         Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Play");
                     break;
                 case GameState.Over:
                     Display.clear(0);
@@ -153,7 +153,7 @@ var Race;
                     this.enemies.forEach(enemy => {
                         Display.drawBitmap(enemy.image, enemy.position, 0);
                     });
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Over");
                     break;
             }
         }
@@ -190,7 +190,7 @@ var Race;
                         case GameState.Over:
                             this.state = state;
                             const overTimer = Application.timer("over");
-                            overTimer.start(3000);
+                            overTimer.start(2000);
                             break;
                     }
                     break;

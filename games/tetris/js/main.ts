@@ -18,246 +18,337 @@ namespace Tetris {
         T
     }
 
-    var pieceTypes: Map<number, PieceType> = new Map<number, PieceType>([
-        [ 0, PieceType.I ],
-        [ 1, PieceType.L ],
-        [ 2, PieceType.J ],
-        [ 3, PieceType.S ],
-        [ 4, PieceType.Z ],
-        [ 5, PieceType.O ],
-        [ 6, PieceType.T ]
-    ]);
+    class PieceITopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceIRightTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Black, Color.Black, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceLTopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceLRightTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Black, Color.Black, Color.Black, Color.Transparent,
+                Color.Black, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceLBottomTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Black, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceLLeftTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Black, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceJTopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceJRightTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceJBottomTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceJLeftTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceSTopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceSRightTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Black, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceZTopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceZRightTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Black, Color.Black, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceOTopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceTTopTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceTRightTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceTBottomTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Black,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
+
+    class PieceTLeftTexture extends Bitmap {
+        constructor() {
+            var value = [
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Black, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Black, Color.Transparent,
+                Color.Transparent, Color.Transparent, Color.Transparent, Color.Transparent
+            ];
+
+            super(4, 4, value);
+        }
+    }
 
     class Piece {
-        private pieces: Map<PieceType, any> = new Map<PieceType, any>([
+        private images: Map<PieceType, Bitmap[]> = new Map<PieceType, Bitmap[]>([
             [
                 PieceType.I, [
-                    [
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [1, 1, 1, 1],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [1, 1, 1, 1],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceITopTexture(),
+                    new PieceIRightTexture(),
+                    new PieceITopTexture(),
+                    new PieceIRightTexture(),
                 ]
             ],
             [
                 PieceType.L, [
-                    [
-                        [0, 1, 0, 0],
-                        [0, 1, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [1, 1, 1, 0],
-                        [1, 0, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [1, 1, 0, 0],
-                        [0, 1, 0, 0],
-                        [0, 1, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [1, 1, 1, 0],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceLTopTexture(),
+                    new PieceLRightTexture(),
+                    new PieceLBottomTexture(),
+                    new PieceLLeftTexture()
                 ]
             ],
             [
                 PieceType.J, [
-                    [
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 1, 0, 0],
-                        [0, 1, 1, 1],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 1],
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 1],
-                        [0, 0, 0, 1],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceJTopTexture(),
+                    new PieceJRightTexture(),
+                    new PieceJBottomTexture(),
+                    new PieceJLeftTexture()
                 ]
             ],
             [
                 PieceType.S, [
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [1, 1, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 1, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [1, 1, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 1, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceSTopTexture(),
+                    new PieceSRightTexture(),
+                    new PieceSTopTexture(),
+                    new PieceSRightTexture(),
                 ]
             ],
             [
                 PieceType.Z, [
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 1, 1],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 1, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 1, 1],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 1, 0, 0],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceZTopTexture(),
+                    new PieceZRightTexture(),
+                    new PieceZTopTexture(),
+                    new PieceZRightTexture(),
                 ]
             ],
             [
                 PieceType.O, [
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceOTopTexture(),
+                    new PieceOTopTexture(),
+                    new PieceOTopTexture(),
+                    new PieceOTopTexture()
                 ]
             ],
             [
                 PieceType.T, [
-                    [
-                        [0, 0, 0, 0],
-                        [0, 1, 1, 1],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [0, 1, 1, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [0, 1, 1, 1],
-                        [0, 0, 0, 0],
-                        [0, 0, 0, 0]
-                    ],
-                    [
-                        [0, 0, 1, 0],
-                        [0, 0, 1, 1],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 0]
-                    ]
+                    new PieceTTopTexture(),
+                    new PieceTRightTexture(),
+                    new PieceTBottomTexture(),
+                    new PieceTLeftTexture()
                 ]
-            ],
+            ]
         ]);
 
         public type: PieceType;
         public position: Point;
 
         private rotation: number;
-        public blocks: number[][];
+        public image: Bitmap;
 
         constructor(type: PieceType, position: Point) {
-            this.type = pieceTypes.get(Utils.random(0, 7));//type;
+            this.type = type;
             this.position = position;
 
             this.rotation = Utils.random(0, 4);
-            this.blocks = this.pieces.get(this.type)[this.rotation];
+            this.image = this.images.get(this.type)[this.rotation];
         }
 
         public update(delta: number) {
         }
 
         public draw() {
-            for (let y = 0; y < this.blocks.length; ++y) {
-                for (let x = 0; x < this.blocks[y].length; ++x) {
-                    if(this.blocks[y][x] === 1) {
-                        Display.drawPixel(new Point(this.position.x + x, this.position.y + y), Color.Black, 0);
-                    }
-                }
-            }
+            Display.drawBitmap(this.image, this.position, 0);
         }
 
         public rotate() {
             this.rotation = (this.rotation + 1) % 4;
-            this.blocks = this.pieces.get(this.type)[this.rotation];
+            this.image = this.images.get(this.type)[this.rotation];
         }
 
         public moveLeft() {
@@ -452,14 +543,14 @@ namespace Tetris {
                 case GameState.Idle:
                     this.clock.draw();
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Idle");
                     break;
                 case GameState.ScreenCleaning:
                     Display.clear(1);
 
                     this.cleaner.draw();
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Cleaning");
                     break;
                 case GameState.Play:
                     Display.clear(0);
@@ -468,18 +559,11 @@ namespace Tetris {
                     //this.next.draw();
 
                     Display.clear(1);
-
-                    for (let y = 0; y < this.next.blocks.length; ++y) {
-                        for (let x = 0; x < this.next.blocks[y].length; ++x) {
-                            if(this.next.blocks[y][x] === 1) {
-                                Display.drawPixel(new Point(x, y), Color.Black, 1);
-                            }
-                        }
-                    }
+                    Display.drawBitmap(this.next.image, this.next.position, 1);
 
                     this.drawGlass(this.glass);
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Play");
 
                     break;
                 case GameState.LinesCleaning:
@@ -487,7 +571,7 @@ namespace Tetris {
 
                     this.drawGlass(this.glass);
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Lines");
 
                     break;
                 case GameState.Over:
@@ -495,7 +579,7 @@ namespace Tetris {
 
                     this.drawGlass(this.glass);
 
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Over");
                     break;
             }
         }
@@ -559,7 +643,7 @@ namespace Tetris {
 
                             const overTimer = Application.timer("over");
 
-                            overTimer.start(3000);
+                            overTimer.start(2000);
 
                             break;
                     }
@@ -628,9 +712,9 @@ namespace Tetris {
         }
 
         private hasCollisions(): boolean {
-            for (let y = 0; y < this.current.blocks.length; ++y) {
-                for (let x = 0; x < this.current.blocks[y].length; ++x) {
-                    if(this.current.blocks[y][x] === 1) {
+            for (let y = 0; y < this.current.image.height; ++y) {
+                for (let x = 0; x < this.current.image.width; ++x) {
+                    if(this.current.image.value[x + y * this.current.image.width] === Color.Black) {
                         if(this.current.position.x + x < 0) {
                             return true;
                         }
@@ -654,14 +738,14 @@ namespace Tetris {
         }
 
         private nextPiece() {
-            this.current = this.next || new Piece(pieceTypes.get(Utils.random(0, 7)), new Point(3, 0));
-            this.next = new Piece(pieceTypes.get(Utils.random(0, 7)), new Point(3, 0));
+            this.current = this.next || new Piece(<PieceType>Utils.random(0, 7), new Point(3, 0));
+            this.next = new Piece(<PieceType>Utils.random(0, 7), new Point(3, 0));
         }
 
         private appendPiece() {
-            for (let y = 0; y < this.current.blocks.length; ++y) {
-                for (let x = 0; x < this.current.blocks[y].length; ++x) {
-                    if(this.current.blocks[y][x] === 1) {
+            for (let y = 0; y < this.current.image.height; ++y) {
+                for (let x = 0; x < this.current.image.width; ++x) {
+                    if(this.current.image.value[x + this.current.image.width * y] === Color.Black) {
                         this.glass[this.current.position.y + y][this.current.position.x + x] = 1;
                     }
                 }

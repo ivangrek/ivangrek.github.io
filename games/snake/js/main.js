@@ -41,14 +41,14 @@ var Snake;
                 case GameState.Play:
                     const moveTimer = Application.timer("move");
                     if (moveTimer.time) {
-                        if (this.hasCollisions(this.to)) {
+                        if (this.hasCollisions(this.moveTo)) {
                             this.setState(GameState.Over);
                         }
                         else {
                             this.neck = this.head;
-                            this.head = this.to;
+                            this.head = this.moveTo;
                             this.snake.push(this.head);
-                            this.to = new Point(this.head.x + this.head.x - this.neck.x, this.head.y + this.head.y - this.neck.y);
+                            this.moveTo = new Point(this.head.x + this.head.x - this.neck.x, this.head.y + this.head.y - this.neck.y);
                             if (this.head.x === this.food.x && this.head.y === this.food.y) {
                                 $sound.currentTime = 0;
                                 $sound.play();
@@ -56,25 +56,25 @@ var Snake;
                                 this.newFood();
                             }
                             else {
-                                this.from = this.snake.shift();
+                                this.snake.shift();
                             }
                         }
                     }
                     // Left
                     if (Application.getButton(Button.Left) && this.head.x - this.neck.x === 0) {
-                        this.to = new Point(this.head.x - 1, this.head.y);
+                        this.moveTo = new Point(this.head.x - 1, this.head.y);
                     }
                     // Right
                     if (Application.getButton(Button.Right) && this.head.x - this.neck.x === 0) {
-                        this.to = new Point(this.head.x + 1, this.head.y);
+                        this.moveTo = new Point(this.head.x + 1, this.head.y);
                     }
                     // Up
                     if (Application.getButton(Button.Up) && this.head.y - this.neck.y === 0) {
-                        this.to = new Point(this.head.x, this.head.y - 1);
+                        this.moveTo = new Point(this.head.x, this.head.y - 1);
                     }
                     // Down
                     if (Application.getButton(Button.Down) && this.head.y - this.neck.y === 0) {
-                        this.to = new Point(this.head.x, this.head.y + 1);
+                        this.moveTo = new Point(this.head.x, this.head.y + 1);
                     }
                     const foodTimer = Application.timer("food");
                     if (foodTimer.time) {
@@ -96,11 +96,11 @@ var Snake;
             switch (this.state) {
                 case GameState.Idle:
                     this.clock.draw();
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Idle");
                     break;
                 case GameState.ScreenCleaning:
                     this.cleaner.draw();
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Cleaning");
                     break;
                 case GameState.Play:
                     Display.clear(0);
@@ -113,14 +113,14 @@ var Snake;
                     else {
                         Display.drawPixel(this.food, Color.White, 0);
                     }
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Play");
                     break;
                 case GameState.Over:
                     Display.clear(0);
                     this.snake.forEach(point => {
                         Display.drawPixel(point, Color.Black, 0);
                     });
-                    Display.drawInfo(this.score, this.level, this.lines, this.state.toString());
+                    Display.drawInfo(this.score, this.level, this.lines, "Over");
                     break;
             }
         }
@@ -156,7 +156,7 @@ var Snake;
                         case GameState.Over:
                             this.state = state;
                             const overTimer = Application.timer("over");
-                            overTimer.start(3000);
+                            overTimer.start(2000);
                             break;
                     }
                     break;
@@ -175,8 +175,7 @@ var Snake;
             this.head = new Point(5, 8);
             this.neck = new Point(5, 7);
             this.tail = new Point(5, 6);
-            this.to = new Point(5, 9);
-            this.from = new Point(5, 5);
+            this.moveTo = new Point(5, 9);
             this.snake = [
                 this.tail,
                 this.neck,
@@ -223,7 +222,7 @@ var Snake;
             }
             for (let i = 0; i < this.snake.length; ++i) {
                 const point = this.snake[i];
-                if (point.x === this.to.x && point.y === this.to.y) {
+                if (point.x === this.moveTo.x && point.y === this.moveTo.y) {
                     return true;
                 }
             }
