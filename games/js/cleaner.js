@@ -1,37 +1,28 @@
 var Components;
 (function (Components) {
+    class CleanerTexture extends Bitmap {
+    }
     class Cleaner extends Component {
         constructor(gameObject) {
             super(gameObject);
-            this.gameObject = gameObject;
             this.line = 0;
             this.timer = Application.timer("cleaner");
-            this.update = (delta) => {
-                if (this.timer.time) {
-                    for (let x = 0; x < Display.width; ++x) {
-                        this.bitmap[Math.abs(this.line - Display.height + 1) - Math.floor(this.line / Display.height)][x] = 2 - Math.floor(this.line / Display.height);
-                    }
-                    ++this.line;
-                    if (this.line === Display.height * 2) {
-                        this.bitmap = new Array(Display.height)
-                            .fill(Color.Transparent)
-                            .map(() => new Array(Display.width).fill(Color.Transparent));
-                        this.line = 0;
-                        this.enable = false;
-                    }
-                }
-            };
-            this.draw = () => {
-                for (let y = 0; y < this.bitmap.length; ++y) {
-                    for (let x = 0; x < this.bitmap[y].length; ++x) {
-                        Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                    }
-                }
-            };
-            this.bitmap = new Array(Display.height)
-                .fill(Color.Transparent)
-                .map(() => new Array(Display.width).fill(Color.Transparent));
+            this.bitmap = new CleanerTexture(Display.width, Display.height, new Array(Display.width * Display.height).fill(Color.Transparent));
             this.timer.start(25);
+        }
+        update(delta) {
+            if (this.timer.time) {
+                for (let x = 0; x < this.bitmap.width; ++x) {
+                    const y = Math.abs(this.line - this.bitmap.height + 1) - Math.floor(this.line / this.bitmap.height);
+                    this.bitmap.value[x + y * this.bitmap.width] = 2 - Math.floor(this.line / this.bitmap.height);
+                }
+                ++this.line;
+                if (this.line === this.bitmap.height * 2) {
+                    this.bitmap = new CleanerTexture(Display.width, Display.height, new Array(Display.width * Display.height).fill(Color.Transparent));
+                    this.line = 0;
+                    this.enabled = false;
+                }
+            }
         }
     }
     Components.Cleaner = Cleaner;

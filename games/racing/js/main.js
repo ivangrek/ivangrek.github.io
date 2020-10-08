@@ -33,15 +33,15 @@ var Race;
     class Game {
         constructor() {
             this.components = [];
+            this.cleaner = new Components.Cleaner(this);
+            this.cleaner.enabled = false;
+            this.components.push(this.cleaner);
+            this.clock = new Components.Clock(this);
+            this.clock.enabled = true;
+            this.components.push(this.clock);
             this.state = GameState.Idle;
             this.nextState = GameState.Play;
             this.reset();
-            this.cleaner = new Components.Cleaner(this);
-            this.cleaner.enable = false;
-            this.clock = new Components.Clock(this);
-            this.clock.enable = true;
-            this.components.push(this.cleaner);
-            this.components.push(this.clock);
         }
         update(delta) {
             switch (this.state) {
@@ -51,7 +51,7 @@ var Race;
                     }
                     break;
                 case GameState.ScreenCleaning:
-                    if (!this.cleaner.enable) {
+                    if (!this.cleaner.enabled) {
                         this.setState(this.nextState);
                     }
                     break;
@@ -126,11 +126,11 @@ var Race;
         draw() {
             switch (this.state) {
                 case GameState.Idle:
-                    this.clock.draw();
+                    Display.drawBitmap(this.clock.bitmap, new Point(0, 0), 0);
                     Display.drawInfo(this.score, this.level, this.lines, "Idle");
                     break;
                 case GameState.ScreenCleaning:
-                    this.cleaner.draw();
+                    Display.drawBitmap(this.cleaner.bitmap, new Point(0, 0), 0);
                     Display.drawInfo(this.score, this.level, this.lines, "Cleaning");
                     break;
                 case GameState.Play:
@@ -164,8 +164,8 @@ var Race;
                         case GameState.ScreenCleaning:
                             this.state = state;
                             this.nextState = GameState.Play;
-                            this.clock.enable = false;
-                            this.cleaner.enable = true;
+                            this.clock.enabled = false;
+                            this.cleaner.enabled = true;
                             break;
                     }
                     break;
@@ -181,7 +181,7 @@ var Race;
                             break;
                         case GameState.Idle:
                             this.state = state;
-                            this.clock.enable = true;
+                            this.clock.enabled = true;
                             break;
                     }
                     break;
@@ -199,7 +199,7 @@ var Race;
                         case GameState.ScreenCleaning:
                             this.state = state;
                             this.nextState = GameState.Idle;
-                            this.cleaner.enable = true;
+                            this.cleaner.enabled = true;
                             break;
                     }
                     break;

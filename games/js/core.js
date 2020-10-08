@@ -8,6 +8,8 @@ var Button;
 })(Button || (Button = {}));
 class Component {
     constructor(gameObject) {
+        this.gameObject = gameObject;
+        this.enabled = true;
     }
 }
 class Input {
@@ -180,22 +182,18 @@ class Application {
         this.components.push(this.input);
         this.components.push(this.time);
         this.childs.push(root);
+        this.root = root;
         let now = performance.now();
         const frame = (time) => {
             requestAnimationFrame(frame);
             const delta = Math.min(1000, time - now);
-            // this.components.forEach(component => {
-            //     component.update(delta);
-            // });
-            this.childs.forEach(child => {
-                child.update(delta);
-                child.components.forEach(component => {
-                    if (component.enable) {
-                        component.update(delta);
-                    }
-                });
-                child.draw();
+            this.root.components.forEach(component => {
+                if (component.enabled) {
+                    component.update(delta);
+                }
             });
+            this.root.update(delta);
+            this.root.draw();
             this.components.forEach(component => {
                 component.update(delta);
             });
@@ -269,10 +267,13 @@ class Display {
             $cells = this.$nextCells;
             size = 4;
         }
-        const $cell = $cells[point.x + (point.y) * size];
-        if ($cell === undefined) {
+        if (point.x < 0 || point.x >= this.width) {
             return;
         }
+        if (point.y < 0 || point.y >= this.height) {
+            return;
+        }
+        const $cell = $cells[point.x + (point.y) * size];
         switch (color) {
             case Color.White:
                 $cell.classList.remove("active");

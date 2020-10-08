@@ -14,15 +14,17 @@ interface IDrawable {
     draw: () => void;
 }
 
-abstract class Component implements IUpdateable, IDrawable {
+abstract class Component implements IUpdateable {
+    protected gameObject: IGameObject
+
     constructor(gameObject: IGameObject) {
+        this.gameObject = gameObject;
+        this.enabled = true;
     }
 
-    public enable: boolean;
+    public enabled: boolean;
 
-    public update: (delta: number) => void;
-
-    public draw: () => void;
+    public abstract update(delta: number): void;
 }
 
 interface IGameObject extends IUpdateable, IDrawable  {
@@ -237,6 +239,7 @@ class Time implements IUpdateable {
 class Application {
     private static components: Array<IUpdateable> = new Array<IUpdateable>();
     private static childs: Array<IGameObject> = new Array<IGameObject>();
+    private static root: IGameObject;
 
     private static input: Input = new Input();
     private static time: Time = new Time();
@@ -246,6 +249,7 @@ class Application {
         this.components.push(this.time);
 
         this.childs.push(root);
+        this.root = root;
 
         let now = performance.now();
 
@@ -254,21 +258,14 @@ class Application {
 
             const delta = Math.min(1000, time - now);
 
-            // this.components.forEach(component => {
-            //     component.update(delta);
-            // });
-
-            this.childs.forEach(child => {
-                child.update(delta);
-
-                child.components.forEach(component => {
-                    if(component.enable) {
-                        component.update(delta);
-                    }
-                });
-
-                child.draw();
+            this.root.components.forEach(component => {
+                if(component.enabled) {
+                    component.update(delta);
+                }
             });
+
+            this.root.update(delta);
+            this.root.draw();
 
             this.components.forEach(component => {
                 component.update(delta);
@@ -377,11 +374,17 @@ class Display {
             size = 4;
         }
 
-        const $cell = $cells[point.x + (point.y) * size];
-
-        if($cell === undefined) {
+        if(point.x < 0 || point.x >= this.width)
+        {
             return;
         }
+
+        if(point.y < 0 || point.y >= this.height)
+        {
+            return;
+        }
+
+        const $cell = $cells[point.x + (point.y) * size];
 
         switch (color) {
             case Color.White:

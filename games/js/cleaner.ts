@@ -1,44 +1,37 @@
 namespace Components {
+    class CleanerTexture extends Bitmap {
+    }
+
     export class Cleaner extends Component {
-        private bitmap: Color[][];
         private line: number = 0;
         private timer = Application.timer("cleaner");
 
-        constructor(private gameObject: IGameObject) {
+        public bitmap: Bitmap;
+
+        constructor(gameObject: IGameObject) {
             super(gameObject);
 
-            this.bitmap = new Array(Display.height)
-                .fill(Color.Transparent)
-                .map(() => new Array(Display.width).fill(Color.Transparent));
-
+            this.bitmap = new CleanerTexture(Display.width, Display.height, new Array(Display.width * Display.height).fill(Color.Transparent));
             this.timer.start(25);
         }
 
-        public update = (delta: number) => {
+        public update(delta: number) {
             if(this.timer.time) {
-                for(let x = 0; x < Display.width; ++x) {
-                    this.bitmap[Math.abs(this.line - Display.height + 1) - Math.floor(this.line / Display.height)][x] = <Color>2 - Math.floor(this.line / Display.height);
+                for(let x = 0; x < this.bitmap.width; ++x) {
+                    const y = Math.abs(this.line - this.bitmap.height + 1) - Math.floor(this.line / this.bitmap.height);
+
+                    this.bitmap.value[x + y * this.bitmap.width] = <Color>2 - Math.floor(this.line / this.bitmap.height);
                 }
 
                 ++this.line;
 
-                if(this.line === Display.height * 2) {
-                    this.bitmap = new Array(Display.height)
-                        .fill(Color.Transparent)
-                        .map(() => new Array(Display.width).fill(Color.Transparent));
+                if(this.line === this.bitmap.height * 2) {
+                    this.bitmap = new CleanerTexture(Display.width, Display.height, new Array(Display.width * Display.height).fill(Color.Transparent));
 
                     this.line = 0;
-                    this.enable = false;
+                    this.enabled = false;
                 }
             }
-        };
-
-        public draw = () => {
-            for (let y = 0; y < this.bitmap.length; ++y) {
-                for (let x = 0; x < this.bitmap[y].length; ++x) {
-                    Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                }
-            }
-        };
+        }
     }
 }

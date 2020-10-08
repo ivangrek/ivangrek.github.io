@@ -79,41 +79,31 @@ var Components;
             [0, 0, 0]
         ]
     };
+    class ClockTexture extends Bitmap {
+    }
     class Clock extends Component {
         constructor(gameObject) {
             super(gameObject);
-            this.gameObject = gameObject;
             this.timer = Application.timer("clock");
             this.showDots = false;
-            this.update = (delta) => {
-                if (this.timer.time) {
-                    this.bitmap = new Array(Display.height)
-                        .fill(Color.White)
-                        .map(() => new Array(Display.width).fill(Color.White));
-                    this.addTime();
-                    if (this.showDots = !this.showDots) {
-                        this.addDots();
-                    }
-                }
-            };
-            this.draw = () => {
-                for (let y = 0; y < this.bitmap.length; ++y) {
-                    for (let x = 0; x < this.bitmap[y].length; ++x) {
-                        Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                    }
-                }
-            };
-            this.bitmap = new Array(Display.height)
-                .fill(Color.White)
-                .map(() => new Array(Display.width).fill(Color.White));
+            this.bitmap = new ClockTexture(Display.width, Display.height, new Array(Display.width * Display.height).fill(Color.Transparent));
             this.timer.start(500);
+        }
+        update(delta) {
+            if (this.timer.time) {
+                this.bitmap.value = new Array(Display.width * Display.height).fill(Color.White);
+                this.addTime();
+                if (this.showDots = !this.showDots) {
+                    this.addDots();
+                }
+            }
         }
         addSymbol(symbol, start) {
             const symbolMeta = symbols[symbol];
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
                     if (symbolMeta[y][x] === 1) {
-                        this.bitmap[y + start.y][x + start.x] = Color.Black;
+                        this.bitmap.value[x + start.x + (y + start.y) * this.bitmap.width] = Color.Black;
                     }
                 }
             }

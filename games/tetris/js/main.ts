@@ -401,10 +401,10 @@ namespace Tetris {
             this.reset();
 
             this.cleaner = new Components.Cleaner(this);
-            this.cleaner.enable = false;
+            this.cleaner.enabled = false;
 
             this.clock = new Components.Clock(this);
-            this.clock.enable = true;
+            this.clock.enabled = true;
 
             this.components.push(this.cleaner);
             this.components.push(this.clock);
@@ -418,7 +418,7 @@ namespace Tetris {
                     }
                     break;
                 case GameState.ScreenCleaning:
-                    if(!this.cleaner.enable) {
+                    if(!this.cleaner.enabled) {
                         this.setState(this.nextState);
                     }
 
@@ -541,14 +541,14 @@ namespace Tetris {
         public draw() {
             switch(this.state) {
                 case GameState.Idle:
-                    this.clock.draw();
+                    Display.drawBitmap(this.clock.bitmap, new Point(0 , 0), 0);
 
                     Display.drawInfo(this.score, this.level, this.lines, "Idle");
                     break;
                 case GameState.ScreenCleaning:
                     Display.clear(1);
 
-                    this.cleaner.draw();
+                    Display.drawBitmap(this.cleaner.bitmap, new Point(0 , 0), 0);
 
                     Display.drawInfo(this.score, this.level, this.lines, "Cleaning");
                     break;
@@ -594,8 +594,8 @@ namespace Tetris {
                             this.state = state;
                             this.nextState = GameState.Play;
 
-                            this.clock.enable = false;
-                            this.cleaner.enable = true;
+                            this.clock.enabled = false;
+                            this.cleaner.enabled = true;
 
                             break;
                     }
@@ -614,7 +614,7 @@ namespace Tetris {
                         case GameState.Idle:
                             this.state = state;
 
-                            this.clock.enable = true;
+                            this.clock.enabled = true;
 
                             break;
                     }
@@ -669,7 +669,7 @@ namespace Tetris {
                             this.state = state;
                             this.nextState = GameState.Idle;
 
-                            this.cleaner.enable = true;
+                            this.cleaner.enabled = true;
 
                             break;
                     }
@@ -739,7 +739,9 @@ namespace Tetris {
 
         private nextPiece() {
             this.current = this.next || new Piece(<PieceType>Utils.random(0, 7), new Point(3, 0));
-            this.next = new Piece(<PieceType>Utils.random(0, 7), new Point(3, 0));
+            this.current.position = new Point(3, 0);
+
+            this.next = new Piece(<PieceType>Utils.random(0, 7), new Point(0, 0));
         }
 
         private appendPiece() {

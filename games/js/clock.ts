@@ -79,26 +79,25 @@ namespace Components {
         ]
     };
 
+    class ClockTexture extends Bitmap {
+    }
+
     export class Clock extends Component {
-        private bitmap: number[][];
         private timer = Application.timer("clock");
         private showDots: boolean = false;
 
-        constructor(private gameObject: IGameObject) {
+        public bitmap: Bitmap;
+
+        constructor(gameObject: IGameObject) {
             super(gameObject);
 
-            this.bitmap = new Array(Display.height)
-                .fill(Color.White)
-                .map(() => new Array(Display.width).fill(Color.White));
-
+            this.bitmap = new ClockTexture(Display.width, Display.height, new Array(Display.width * Display.height).fill(Color.Transparent));
             this.timer.start(500);
         }
 
-        public update = (delta: number) => {
+        public update (delta: number) {
             if(this.timer.time) {
-                this.bitmap = new Array(Display.height)
-                    .fill(Color.White)
-                    .map(() => new Array(Display.width).fill(Color.White));
+                this.bitmap.value = new Array(Display.width * Display.height).fill(Color.White);
 
                 this.addTime();
 
@@ -106,15 +105,7 @@ namespace Components {
                     this.addDots();
                 }
             }
-        };
-
-        public draw = () => {
-            for (let y = 0; y < this.bitmap.length; ++y) {
-                for (let x = 0; x < this.bitmap[y].length; ++x) {
-                    Display.drawPixel(new Point(x, y), this.bitmap[y][x], 0);
-                }
-            }
-        };
+        }
 
         private addSymbol(symbol: string, start: Point) {
             const symbolMeta = symbols[symbol];
@@ -122,7 +113,7 @@ namespace Components {
             for (let y = 0; y < symbolMeta.length; ++y) {
                 for (let x = 0; x < symbolMeta[y].length; ++x) {
                     if(symbolMeta[y][x] === 1) {
-                        this.bitmap[y + start.y][x + start.x] = Color.Black;
+                        this.bitmap.value[x + start.x + (y + start.y) * this.bitmap.width] = Color.Black;
                     }
                 }
             }
