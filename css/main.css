@@ -1,24 +1,49 @@
+
+:root, .theme-light {
+    --background-color: #fff;
+    --text-color: #24292e;
+    --link-color: #0366d6;
+    --theme-button-background-color: #0e1117;
+}
+
+.theme-dark {
+    --background-color: #0e1117;
+    --text-color: #c9d1d9;
+    --link-color: #58a6ff;
+    --theme-button-background-color: #fff;
+}
+
 html, body{
-    height:100%;
+    width: 100vw;
+    height: 100vh;
     font-family: "Open Sans";
+    user-select: none;
 }
 
-h1 {
+body {
+    background-color: var(--background-color);
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
-    margin: 0;
-    height: 76.4%;
+    color: var(--text-color);
 }
 
-h3 {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.container {
+    margin-top: -300px;
 }
 
-a {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.container h1 {
+    font-weight: normal;
+    margin-bottom: 16px;
+}
+
+.container h3 {
+    font-weight: normal;
+    margin-bottom: 8px;
+}
+
+.container a {
+    display: block;
+    color: var(--link-color);
+    font-size: 0.875rem;
 }

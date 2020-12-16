@@ -3,7 +3,7 @@
   --back-color: #eee;
   --front-color: #333;
 }
-        
+
 html, body {
     margin: 0;
     padding: 0;
@@ -16,6 +16,8 @@ body {
     background-color: var(--back-color);
     font-family: monospace;
     font-size: 16px;
+    color: #404040;
+    user-select: none;
 }
 
 .display {
@@ -29,7 +31,7 @@ body {
     min-width: calc(10 * 11 * var(--line-width) + var(--line-width));
     max-width: calc(10 * 11 * var(--line-width) + var(--line-width));
     margin: 0 auto;
-    
+
     /* border: calc(var(--line-width)) solid var(--front-color); */
     background-color: white;
     padding: calc(var(--line-width)) 0 0 calc(var(--line-width));
@@ -88,6 +90,10 @@ body {
     margin-top: calc(11 * var(--line-width));
 }
 
+.buttons {
+    margin-top: calc(11 * var(--line-width));
+}
+
 .cell {
     display: flex;
     align-items: center;
@@ -108,5 +114,5 @@ body {
 }
 
 .cell.active {
-    background-color: var(--front-color);    
+    background-color: var(--front-color);
 }
